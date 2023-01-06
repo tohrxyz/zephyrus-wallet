@@ -3,4 +3,5 @@
     <string name="generate_new_wallet">Generate a New Wallet</string>
     <string name="recover_existing_wallet">Recover an Existing Wallet</string>
     <string name="wallet_recovery_screen">Wallet Recovery Screen</string>
+    <string name="recovery_phrase">Recovery Phrase</string>
 </resources>

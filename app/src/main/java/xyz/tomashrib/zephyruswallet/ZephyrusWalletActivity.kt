@@ -3,6 +3,7 @@ package xyz.tomashrib.zephyruswallet
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import xyz.tomashrib.zephyruswallet.ui.HomeNavigation
 import xyz.tomashrib.zephyruswallet.ui.start.CreateWalletNavigation
 
 class ZephyrusWalletActivity: AppCompatActivity() {
@@ -11,7 +12,7 @@ class ZephyrusWalletActivity: AppCompatActivity() {
 
         val onBuildWalletButtonClicked: () -> Unit = {
             setContent {
-//                HomeNavigation()
+                HomeNavigation()
             }
         }
 
