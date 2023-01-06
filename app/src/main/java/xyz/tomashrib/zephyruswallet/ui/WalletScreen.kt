@@ -3,6 +3,7 @@ package xyz.tomashrib.zephyruswallet.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -19,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.R
@@ -44,7 +46,7 @@ internal fun WalletScreen(navController: NavController){
             Column(
                 Modifier
                     .background(ZephyrusColors.lightPurplePrimary)
-                    .height(200.dp)
+                    .height(250.dp)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
@@ -55,15 +57,16 @@ internal fun WalletScreen(navController: NavController){
                     painter = painterResource(R.drawable.zephyrus_wallet_logo),
                     contentDescription = "Zephyrus Wallet Logo",
                     Modifier
-                        .size(100.dp)
+                        .size(120.dp)
                         .padding(bottom = 12.dp)
-                        .clip(RoundedCornerShape(35.dp))
+                        .clip(RoundedCornerShape(30.dp))
                 )
 
                 //displays text
                 Text(
                     text = stringResource(R.string.app_name),
-                    color = ZephyrusColors.darkerPurpleOnPrimary
+                    color = ZephyrusColors.surfaceBlack,
+                    fontSize = 15.sp,
                 )
 
                 //displays space to bottom
@@ -79,8 +82,8 @@ internal fun WalletScreen(navController: NavController){
                 colors = NavigationDrawerItemDefaults.colors(
                     selectedContainerColor = ZephyrusColors.bgColorBlack,
                     unselectedContainerColor = ZephyrusColors.bgColorBlack,
-                    selectedTextColor = ZephyrusColors.fontColorWhite,
-                    unselectedTextColor = ZephyrusColors.fontColorWhite,
+                    selectedTextColor = ZephyrusColors.lightPurplePrimary,
+                    unselectedTextColor = ZephyrusColors.lightPurplePrimary,
                 )
             )
         },
