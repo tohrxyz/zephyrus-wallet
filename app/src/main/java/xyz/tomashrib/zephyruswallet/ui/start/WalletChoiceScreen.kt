@@ -65,7 +65,7 @@ internal fun WalletChoiceScreen(
                 Text(
                     text = stringResource(R.string.app_name),
                     color = ZephyrusColors.fontColorWhite,
-                    fontSize = 40.sp,
+                    fontSize = 30.sp,
                     fontFamily = sourceSans,
                 )
             }
