@@ -13,15 +13,18 @@ import xyz.tomashrib.zephyruswallet.ui.Screen
 fun CreateWalletNavigation(onBuildWalletButtonClicked: () -> Unit) {
     val navController: NavHostController = rememberAnimatedNavController()
 
+    //this routes across different screen depending on the context
     AnimatedNavHost(
         navController = navController,
         startDestination = Screen.WalletChoiceScreen.route,
     ) {
 
+        //this can go to WalletChoiceScreen
         composable(
             route = Screen.WalletChoiceScreen.route,
         ) { WalletChoiceScreen(navController = navController, onBuildWalletButtonClicked) }
 
+        //this can go to WalletRecoveryScreen
         composable(
             route = Screen.WalletRecoveryScreen.route,
         ) { WalletRecoveryScreen() }

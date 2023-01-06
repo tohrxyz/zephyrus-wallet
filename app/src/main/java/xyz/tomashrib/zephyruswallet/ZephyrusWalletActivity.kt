@@ -15,6 +15,7 @@ class ZephyrusWalletActivity: AppCompatActivity() {
             }
         }
 
+        //if the wallet isnt created yet, CreateWalletNavigation graph is launched
         setContent {
             CreateWalletNavigation(onBuildWalletButtonClicked)
         }
