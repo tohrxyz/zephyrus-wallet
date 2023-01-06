@@ -8,4 +8,5 @@ object ZephyrusColors{
     val lightPurplePrimary: Color = Color(0xFFD0BCFF)
     val darkerPurpleOnPrimary: Color = Color(0xFF381E72)
     val lightGreyContainer: Color = Color(0xFF4A4458)
+    val fontColorWhite: Color = Color(0xFFeceff4)
 }
