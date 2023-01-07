@@ -1,13 +1,12 @@
 package xyz.tomashrib.zephyruswallet.ui.wallet
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,17 +14,31 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import org.bitcoindevkit.PartiallySignedTransaction
+import org.bitcoindevkit.TransactionDetails
 import xyz.tomashrib.zephyruswallet.R
+import xyz.tomashrib.zephyruswallet.data.Wallet
+import xyz.tomashrib.zephyruswallet.tools.TAG
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
 @Composable
 internal fun SendScreen(navController: NavController){
+
+    val (showDialog, setShowDialog) =  remember { mutableStateOf(false) }
+
+    val recipientAddress: MutableState<String> = remember { mutableStateOf("") }
+    val amount: MutableState<String> = remember { mutableStateOf("") }
+    val feeRate: MutableState<String> = remember { mutableStateOf("") }
+
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
@@ -60,9 +73,17 @@ internal fun SendScreen(navController: NavController){
                     height = Dimension.fillToConstraints
                 }
         ){
-            TransactionAddressInput()
-            TransactionAmountInput()
-            TransactionFeeInput()
+            TransactionAddressInput(recipientAddress)
+            TransactionAmountInput(amount)
+            TransactionFeeInput(feeRate)
+
+            Dialog(
+                recipientAddress = recipientAddress.value,
+                amount = amount.value,
+                feeRate = feeRate.value,
+                showDialog = showDialog,
+                setShowDialog = setShowDialog
+            )
         }
 
         Column(
@@ -98,18 +119,18 @@ internal fun SendScreen(navController: NavController){
 }
 
 @Composable
-private fun TransactionAddressInput(){
+private fun TransactionAddressInput(recipientAddress: MutableState<String>){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
-        var inputText by remember { mutableStateOf("") }
+//        var inputText by remember { mutableStateOf("") }
 
         OutlinedTextField(
             modifier = Modifier
                 .padding(vertical = 10.dp)
                 .fillMaxWidth(0.9f),
-            value = inputText,
-            onValueChange = { inputText = it },
+            value = recipientAddress.value,
+            onValueChange = { recipientAddress.value = it },
             label = {
                 Text(
                     text = stringResource(R.string.send_address),
@@ -128,18 +149,18 @@ private fun TransactionAddressInput(){
 }
 
 @Composable
-private fun TransactionAmountInput(){
+private fun TransactionAmountInput(amount: MutableState<String>){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
-        var inputText by remember { mutableStateOf("") }
+//        var inputText by remember { mutableStateOf("") }
 
         OutlinedTextField(
             modifier = Modifier
                 .padding(vertical = 10.dp)
                 .fillMaxWidth(0.9f),
-            value = inputText,
-            onValueChange = { inputText = it },
+            value = amount.value,
+            onValueChange = { amount.value = it },
             label = {
                 Text(
                     text = stringResource(R.string.send_amount),
@@ -158,18 +179,18 @@ private fun TransactionAmountInput(){
 }
 
 @Composable
-private fun TransactionFeeInput(){
+private fun TransactionFeeInput(feeRate: MutableState<String>){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
-        var inputText by remember { mutableStateOf("") }
+//        var inputText by remember { mutableStateOf("") }
 
         OutlinedTextField(
             modifier = Modifier
                 .padding(vertical = 10.dp)
                 .fillMaxWidth(0.9f),
-            value = inputText,
-            onValueChange = { inputText = it },
+            value = feeRate.value,
+            onValueChange = { feeRate.value = it },
             label = {
                 Text(
                     text = stringResource(R.string.send_fee_rate),
@@ -185,4 +206,76 @@ private fun TransactionFeeInput(){
             ),
         )
     }
+}
+
+@Composable
+fun Dialog(
+    recipientAddress: String,
+    amount: String,
+    feeRate: String,
+    showDialog: Boolean,
+    setShowDialog: (Boolean) -> Unit,
+) {
+    if (showDialog) {
+        AlertDialog(
+            containerColor = ZephyrusColors.bgColorBlack,
+            onDismissRequest = {},
+            title = {
+                Text(
+                    text = "Confirm transaction",
+                    color = ZephyrusColors.fontColorWhite
+                )
+            },
+            text = {
+                Text(
+                    text = "Send: $amount\nto: $recipientAddress\nFee rate: ${feeRate.toFloat()}",
+                    color = ZephyrusColors.fontColorWhite
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        broadcastTransaction(recipientAddress, amount.toULong(), feeRate.toFloat())
+                        setShowDialog(false)
+                    },
+                ) {
+                    Text(
+                        text = "Confirm",
+                        color = ZephyrusColors.fontColorWhite
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        setShowDialog(false)
+                    },
+                ) {
+                    Text(
+                        text = "Cancel",
+                        color = ZephyrusColors.fontColorWhite
+                    )
+                }
+            },
+        )
+    }
+}
+
+private fun broadcastTransaction(recipientAddress: String, amount: ULong, feeRate: Float = 1F) {
+    Log.i(TAG, "Attempting to broadcast transaction with inputs: recipient: $recipientAddress, amount: $amount, fee rate: $feeRate")
+    try {
+        // create, sign, and broadcast
+        val (psbt: PartiallySignedTransaction, txDetails: TransactionDetails)  = Wallet.createTransaction(recipientAddress, amount, feeRate)
+        Wallet.sign(psbt)
+        val txid: String = Wallet.broadcast(psbt)
+        Log.i(TAG, "Transaction was broadcasted! txid: $txid")
+    } catch (e: Throwable) {
+        Log.i(TAG, "Broadcast error: ${e.message}")
+    }
+}
+
+@Preview(device = Devices.PIXEL_4, showBackground = true)
+@Composable
+internal fun PreviewSendScreen() {
+    SendScreen(rememberNavController())
 }
