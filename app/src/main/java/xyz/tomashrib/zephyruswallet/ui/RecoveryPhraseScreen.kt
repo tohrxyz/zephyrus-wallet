@@ -17,12 +17,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import xyz.tomashrib.zephyruswallet.R
+import xyz.tomashrib.zephyruswallet.data.Repository
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RecoveryPhraseScreen(navController: NavController){
+
+    val seedPhrase: String = Repository.getMnemonic()
+    val wordList: List<String> = seedPhrase.split(" ")
+
     Scaffold(
     ){
         //column layout which contains Image, Spacer and Text under each other
@@ -33,17 +38,6 @@ internal fun RecoveryPhraseScreen(navController: NavController){
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ){
-            //displays image
-            Image(
-                painter = painterResource(R.drawable.zephyrus_wallet_logo),
-                contentDescription = "Zephyrus Wallet Logo",
-                Modifier
-                    .size(150.dp)
-                    .clip(RoundedCornerShape(35.dp))
-            )
-
-            //displays space between
-            Spacer(modifier = Modifier.padding(12.dp))
 
             //displays text
             Text(
@@ -52,6 +46,17 @@ internal fun RecoveryPhraseScreen(navController: NavController){
                 fontSize = 30.sp,
                 fontFamily = sourceSans,
             )
+
+            Spacer(Modifier.padding(vertical = 20.dp))
+
+            wordList.forEachIndexed { index, item ->
+                Text(
+                    text = "${index + 1}. $item",
+                    modifier = Modifier.weight(weight = 1F),
+                    color = ZephyrusColors.fontColorWhite,
+                    fontFamily = sourceSans
+                )
+            }
         }
     }
 }
