@@ -15,4 +15,7 @@
     <string name="send_amount">Amount of Sats</string>
     <string name="send_fee_rate">Fee Rate ( Sats/vB )</string>
     <string name="send_broadcast">Send Them Away</string>
+    <string name="pending">Pending...</string>
+    <string name="confirmed">Confirmed.</string>
+    <string name="recovery_phrase_screen">Recovery Phrase Screen</string>
 </resources>

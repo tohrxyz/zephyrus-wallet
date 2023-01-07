@@ -3,6 +3,7 @@ package xyz.tomashrib.zephyruswallet.ui.wallet
 import android.view.RoundedCorner
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -53,41 +54,115 @@ internal fun HomeScreen(navController: NavController) {
             Text(
                 text = "123,434",
                 fontFamily = sourceSansSemiBold,
-                fontSize = 30.sp,
+                fontSize = 40.sp,
                 color = ZephyrusColors.lightPurplePrimary,
             )
             Spacer(Modifier.padding(5.dp))
             Text(
                 text = "Sats",
                 fontFamily = sourceSansSemiBold,
-                fontSize = 30.sp,
+                fontSize = 40.sp,
                 color = ZephyrusColors.lightPurplePrimary,
             )
         }
-        Spacer(Modifier.padding(80.dp))
+        Spacer(Modifier.padding(50.dp))
 
-        //button that goes to transaction history screen
-        Button(
-            onClick = {  },
-            colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
-            shape = RoundedCornerShape(10.dp),
+//        //button that goes to transaction history screen
+//        Button(
+//            onClick = {  },
+//            colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
+//            shape = RoundedCornerShape(10.dp),
+//            modifier = Modifier
+//                .size(width = 320.dp, height = 100.dp)
+//                .padding(vertical = 10.dp, horizontal = 10.dp)
+//                .shadow(elevation = 4.dp, shape = RoundedCornerShape(10.dp)),
+//        ){
+//            //text which is displayed on the button
+//            Text(
+//                stringResource(R.string.transaction_history),
+//                fontSize = 25.sp,
+//                fontFamily = sourceSans,
+//                textAlign = TextAlign.Center,
+//                lineHeight = 30.sp,
+//                color = ZephyrusColors.darkerPurpleOnPrimary,
+//            )
+//        }
+
+        //transaction history box
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .size(width = 320.dp, height = 100.dp)
-                .padding(vertical = 10.dp, horizontal = 10.dp)
-                .shadow(elevation = 4.dp, shape = RoundedCornerShape(10.dp)),
+                .fillMaxWidth()
+                .padding(5.dp)
+//                .background(ZephyrusColors.darkerPurpleOnPrimary, shape = RoundedCornerShape(10.dp))
         ){
-            //text which is displayed on the button
-            Text(
-                stringResource(R.string.transaction_history),
-                fontSize = 25.sp,
-                fontFamily = sourceSans,
-                textAlign = TextAlign.Center,
-                lineHeight = 30.sp,
-                color = ZephyrusColors.darkerPurpleOnPrimary,
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .background(ZephyrusColors.fontColorWhite)
+//                    .border(2.dp, ZephyrusColors.lightPurplePrimary)
+                    .padding(horizontal = 15.dp, vertical = 8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.pending),
+                    fontFamily = sourceSans,
+                    fontSize = 20.sp,
+                    color = ZephyrusColors.bgColorBlack,
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .height(80.dp)
+//                    .background(ZephyrusColors.lightPurplePrimary)
+                    .border(2.dp, ZephyrusColors.fontColorWhite)
+                    .padding(horizontal = 15.dp, vertical = 8.dp)
+            ){
+                Text(
+                    text = stringResource(R.string.transaction_history),
+                    fontFamily = sourceSans,
+                    fontSize = 15.sp,
+                    color = ZephyrusColors.fontColorWhite,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .background(ZephyrusColors.fontColorWhite)
+//                    .border(2.dp, ZephyrusColors.lightPurplePrimary)
+                    .padding(horizontal = 15.dp, vertical = 8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.confirmed),
+                    fontFamily = sourceSans,
+                    fontSize = 20.sp,
+                    color = ZephyrusColors.bgColorBlack,
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .height(80.dp)
+//                    .background(ZephyrusColors.lightPurplePrimary)
+                    .border(2.dp, ZephyrusColors.fontColorWhite)
+                    .padding(horizontal = 15.dp, vertical = 8.dp)
+            ){
+                Text(
+                    text = stringResource(R.string.transaction_history),
+                    fontFamily = sourceSans,
+                    fontSize = 15.sp,
+                    color = ZephyrusColors.fontColorWhite,
+                )
+            }
         }
 
-        Spacer(Modifier.padding(100.dp))
+
+
+        Spacer(Modifier.padding(70.dp))
 
         Row(
             modifier = Modifier
@@ -100,7 +175,7 @@ internal fun HomeScreen(navController: NavController) {
 
             Button(
                 onClick = { navController.navigate(Screen.ReceiveScreen.route) },
-                colors = ButtonDefaults.buttonColors(ZephyrusColors.darkerPurpleOnPrimary),
+                colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .height(80.dp)
@@ -112,7 +187,7 @@ internal fun HomeScreen(navController: NavController) {
                     fontSize = 20.sp,
                     fontFamily = sourceSans,
                     lineHeight = 30.sp,
-                    color = ZephyrusColors.fontColorWhite,
+                    color = ZephyrusColors.darkerPurpleOnPrimary,
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
                 )
@@ -120,14 +195,17 @@ internal fun HomeScreen(navController: NavController) {
 
             Spacer(Modifier.padding(horizontal = 5.dp))
             Image(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_round_sync),
+                imageVector = ImageVector.vectorResource(R.drawable.ic_round_sync_black),
                 contentDescription = "sync",
                 modifier = Modifier
-                    .background(ZephyrusColors.lightPurplePrimary, shape = RoundedCornerShape(10.dp))
+                    .background(
+                        ZephyrusColors.fontColorWhite,
+                        shape = RoundedCornerShape(10.dp)
+                    )
 //                    .height(80.dp)
                     .weight(0.5f)
 //                    .shadow(elevation = 5.dp, shape = RoundedCornerShape(10.dp))
-                    .clickable {  }
+                    .clickable { }
                     .clip(RoundedCornerShape(10.dp))
                     .padding(horizontal = 5.dp)
             )
@@ -135,7 +213,7 @@ internal fun HomeScreen(navController: NavController) {
 
             Button(
                 onClick = { navController.navigate(Screen.SendScreen.route) },
-                colors = ButtonDefaults.buttonColors(ZephyrusColors.darkerPurpleOnPrimary),
+                colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .height(80.dp)
@@ -147,7 +225,7 @@ internal fun HomeScreen(navController: NavController) {
                     fontSize = 20.sp,
                     fontFamily = sourceSans,
                     lineHeight = 30.sp,
-                    color = ZephyrusColors.fontColorWhite,
+                    color = ZephyrusColors.darkerPurpleOnPrimary,
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
                         .padding(start = 10.dp)

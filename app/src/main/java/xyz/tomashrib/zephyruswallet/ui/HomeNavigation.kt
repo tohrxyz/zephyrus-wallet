@@ -25,8 +25,8 @@ fun HomeNavigation() {
 //            route = Screen.AboutScreen.route,
 //        ) { AboutScreen(navController = navController) }
 //
-//        composable(
-//            route = Screen.RecoveryPhraseScreen.route,
-//        ) { RecoveryPhraseScreen(navController = navController) }
+        composable(
+            route = Screen.RecoveryPhraseScreen.route,
+        ) { RecoveryPhraseScreen(navController = navController) }
     }
 }
