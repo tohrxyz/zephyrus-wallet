@@ -134,7 +134,7 @@ internal fun HomeScreen(navController: NavController) {
             Spacer(Modifier.padding(horizontal = 5.dp))
 
             Button(
-                onClick = { },
+                onClick = { navController.navigate(Screen.SendScreen.route) },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.darkerPurpleOnPrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
