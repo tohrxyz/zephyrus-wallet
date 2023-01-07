@@ -7,4 +7,7 @@
     <string name="transaction_history">Transaction History</string>
     <string name="receive">Receive</string>
     <string name="send">Send</string>
+    <string name="receive_address">Receive Address</string>
+    <string name="generate_new_address">Generate a New Address</string>
+    <string name="copy">Copy</string>
 </resources>

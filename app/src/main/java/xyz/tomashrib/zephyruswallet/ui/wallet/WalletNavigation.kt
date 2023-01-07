@@ -22,9 +22,9 @@ fun WalletNavigation() {
             route = Screen.HomeScreen.route,
         ) { HomeScreen(navController) }
 
-//        composable(
-//            route = Screen.ReceiveScreen.route,
-//        ) { ReceiveScreen(navController) }
+        composable(
+            route = Screen.ReceiveScreen.route,
+        ) { ReceiveScreen(navController) }
 //
 //        composable(
 //            route = Screen.SendScreen.route,

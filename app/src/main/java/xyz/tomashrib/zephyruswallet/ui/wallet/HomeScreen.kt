@@ -44,7 +44,7 @@ internal fun HomeScreen(navController: NavController) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .background(ZephyrusColors.lightPurplePrimary)
+//                .background(ZephyrusColors.lightPurplePrimary)
                 .padding(horizontal = 15.dp)
                 .height(120.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -54,19 +54,19 @@ internal fun HomeScreen(navController: NavController) {
                 text = "123,434",
                 fontFamily = sourceSansSemiBold,
                 fontSize = 30.sp,
-                color = ZephyrusColors.darkerPurpleOnPrimary,
+                color = ZephyrusColors.lightPurplePrimary,
             )
             Spacer(Modifier.padding(5.dp))
             Text(
                 text = "Sats",
                 fontFamily = sourceSansSemiBold,
                 fontSize = 30.sp,
-                color = ZephyrusColors.darkerPurpleOnPrimary,
+                color = ZephyrusColors.lightPurplePrimary,
             )
         }
         Spacer(Modifier.padding(80.dp))
 
-        //button that recovers an existing wallet
+        //button that goes to transaction history screen
         Button(
             onClick = {  },
             colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
@@ -99,8 +99,8 @@ internal fun HomeScreen(navController: NavController) {
         ){
 
             Button(
-                onClick = { },
-                colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
+                onClick = { navController.navigate(Screen.ReceiveScreen.route) },
+                colors = ButtonDefaults.buttonColors(ZephyrusColors.darkerPurpleOnPrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .height(80.dp)
@@ -112,7 +112,7 @@ internal fun HomeScreen(navController: NavController) {
                     fontSize = 20.sp,
                     fontFamily = sourceSans,
                     lineHeight = 30.sp,
-                    color = ZephyrusColors.darkerPurpleOnPrimary,
+                    color = ZephyrusColors.fontColorWhite,
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
                 )
@@ -124,7 +124,7 @@ internal fun HomeScreen(navController: NavController) {
                 contentDescription = "sync",
                 modifier = Modifier
                     .background(ZephyrusColors.lightPurplePrimary, shape = RoundedCornerShape(10.dp))
-//                    .height(150.dp)
+//                    .height(80.dp)
                     .weight(0.5f)
 //                    .shadow(elevation = 5.dp, shape = RoundedCornerShape(10.dp))
                     .clickable {  }
@@ -135,7 +135,7 @@ internal fun HomeScreen(navController: NavController) {
 
             Button(
                 onClick = { },
-                colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
+                colors = ButtonDefaults.buttonColors(ZephyrusColors.darkerPurpleOnPrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .height(80.dp)
@@ -147,7 +147,7 @@ internal fun HomeScreen(navController: NavController) {
                     fontSize = 20.sp,
                     fontFamily = sourceSans,
                     lineHeight = 30.sp,
-                    color = ZephyrusColors.darkerPurpleOnPrimary,
+                    color = ZephyrusColors.fontColorWhite,
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
                         .padding(start = 10.dp)
