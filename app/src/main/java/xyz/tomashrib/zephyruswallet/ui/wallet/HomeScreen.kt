@@ -1,5 +1,9 @@
 package xyz.tomashrib.zephyruswallet.ui.wallet
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.util.Log
 import android.view.RoundedCorner
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,27 +16,58 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import xyz.tomashrib.zephyruswallet.R
+import xyz.tomashrib.zephyruswallet.data.Wallet
+import xyz.tomashrib.zephyruswallet.tools.TAG
 import xyz.tomashrib.zephyruswallet.ui.Screen
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSansSemiBold
 
+internal class WalletViewModel : ViewModel() {
+
+    private var _balance: MutableLiveData<ULong> = MutableLiveData(0u)
+    val balance: LiveData<ULong>
+        get() = _balance
+
+    fun updateBalance() {
+        Wallet.sync()
+        _balance.value = Wallet.getBalance()
+        Log.i(TAG, "Balance updated ${Wallet.getBalance()}")
+    }
+}
 
 @Composable
-internal fun HomeScreen(navController: NavController) {
+internal fun HomeScreen(
+    navController: NavController,
+    walletViewModel: WalletViewModel = viewModel()
+) {
+
+    val networkAvailable: Boolean = isOnline(LocalContext.current)
+    val balance by walletViewModel.balance.observeAsState()
+    if (networkAvailable && !Wallet.isBlockChainCreated()) {
+        Log.i(TAG, "Creating new blockchain")
+        Wallet.createBlockchain()
+    }
 
     Column(
         modifier = Modifier
@@ -52,7 +87,7 @@ internal fun HomeScreen(navController: NavController) {
             horizontalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = "123,434",
+                text = balance.toString(),
                 fontFamily = sourceSansSemiBold,
                 fontSize = 40.sp,
                 color = ZephyrusColors.lightPurplePrimary,
@@ -65,6 +100,25 @@ internal fun HomeScreen(navController: NavController) {
                 color = ZephyrusColors.lightPurplePrimary,
             )
         }
+
+        if (!networkAvailable) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .background(color = ZephyrusColors.lightBlue)
+                    .height(50.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = "Network unavailable",
+                    fontFamily = sourceSans,
+                    fontSize = 18.sp,
+                    color = ZephyrusColors.fontColorWhite
+                )
+            }
+        }
+
         Spacer(Modifier.padding(50.dp))
 
 //        //button that goes to transaction history screen
@@ -205,7 +259,7 @@ internal fun HomeScreen(navController: NavController) {
 //                    .height(80.dp)
                     .weight(0.5f)
 //                    .shadow(elevation = 5.dp, shape = RoundedCornerShape(10.dp))
-                    .clickable { }
+                    .clickable { walletViewModel.updateBalance() }
                     .clip(RoundedCornerShape(10.dp))
                     .padding(horizontal = 5.dp)
             )
@@ -235,4 +289,28 @@ internal fun HomeScreen(navController: NavController) {
 
         }
     }
+}
+
+fun isOnline(context: Context): Boolean {
+    val connectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val capabilities =
+        connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+    if (capabilities != null) {
+        when {
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+                return true
+            }
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+                return true
+            }
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
+                Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+                return true
+            }
+        }
+    }
+    return false
 }
