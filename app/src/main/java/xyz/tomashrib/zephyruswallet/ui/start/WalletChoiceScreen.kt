@@ -19,6 +19,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.R
+import xyz.tomashrib.zephyruswallet.WalletCreateType
 import xyz.tomashrib.zephyruswallet.ui.Screen
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
@@ -26,7 +27,7 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 @Composable
 internal fun WalletChoiceScreen(
     navController: NavController,
-    onBuildWalletButtonClicked: () -> Unit
+    onBuildWalletButtonClicked: (WalletCreateType) -> Unit
 ){
     Scaffold() {
         ConstraintLayout(
@@ -72,7 +73,7 @@ internal fun WalletChoiceScreen(
 
             //button that generates a new wallet
             Button(
-                onClick = { onBuildWalletButtonClicked() },
+                onClick = { onBuildWalletButtonClicked(WalletCreateType.FROMSCRATCH()) },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier

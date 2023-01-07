@@ -6,11 +6,12 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import xyz.tomashrib.zephyruswallet.WalletCreateType
 import xyz.tomashrib.zephyruswallet.ui.Screen
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun CreateWalletNavigation(onBuildWalletButtonClicked: () -> Unit) {
+fun CreateWalletNavigation(onBuildWalletButtonClicked: (WalletCreateType) -> Unit) {
     val navController: NavHostController = rememberAnimatedNavController()
 
     //this routes across different screen depending on the context
