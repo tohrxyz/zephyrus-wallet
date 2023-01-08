@@ -10,6 +10,7 @@
     <string name="receive_address">Receive Address</string>
     <string name="generate_new_address">Generate a New Address</string>
     <string name="copy">Copy</string>
+    <string name="copied">Copied</string>
     <string name="send_sats">Send Sats</string>
     <string name="send_address">Outgoing Address</string>
     <string name="send_amount">Amount of Sats</string>

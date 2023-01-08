@@ -1,5 +1,7 @@
 package xyz.tomashrib.zephyruswallet.ui.wallet
 
+import android.annotation.SuppressLint
+import android.content.ClipData
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,6 +43,12 @@ import xyz.tomashrib.zephyruswallet.R
 import xyz.tomashrib.zephyruswallet.data.Wallet
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
+import android.content.ClipboardManager
+import android.content.Context
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import xyz.tomashrib.zephyruswallet.tools.TAG
+
 
 internal class AddressViewModel : ViewModel() {
 
@@ -57,12 +65,13 @@ internal class AddressViewModel : ViewModel() {
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 internal fun ReceiveScreen(
     navController: NavController,
+    context: Context,
     addressViewModel: AddressViewModel = viewModel()
 ){
-
     val address by addressViewModel.address.observeAsState("Generate new address")
 
     ConstraintLayout(
@@ -120,8 +129,13 @@ internal fun ReceiveScreen(
             }
 
             Spacer(Modifier.padding(10.dp))
+
+            var addressCopied = mutableStateOf(false)
             Button(
-                onClick = {  },
+                onClick = {
+                    copyToClipboard(context, address)
+                    addressCopied.value = true
+                },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
@@ -131,7 +145,7 @@ internal fun ReceiveScreen(
             ){
                 //text which is displayed on the button
                 Text(
-                    stringResource(R.string.copy),
+                    stringResource(if (addressCopied.value) R.string.copied else R.string.copy),
                     fontSize = 18.sp,
                     fontFamily = sourceSans,
                     textAlign = TextAlign.Center,
@@ -195,8 +209,16 @@ private fun addressToQR(address: String): ImageBitmap? {
     return null
 }
 
-@Preview(device = Devices.PIXEL_4, showBackground = true)
-@Composable
-internal fun PreviewReceiveScreen() {
-    ReceiveScreen(rememberNavController())
+private fun copyToClipboard(context: Context, address: String){
+    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = ClipData.newPlainText("address", address)
+    clipboardManager.setPrimaryClip(clip)
+
+    Log.i(TAG, "Address was copied to clipboard!: $address")
 }
+
+//@Preview(device = Devices.PIXEL_4, showBackground = true)
+//@Composable
+//internal fun PreviewReceiveScreen() {
+//    ReceiveScreen(rememberNavController())
+//}
