@@ -42,6 +42,7 @@ import xyz.tomashrib.zephyruswallet.ui.Screen
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSansSemiBold
+import xyz.tomashrib.zephyruswallet.tools.formatSats
 
 internal class WalletViewModel : ViewModel() {
 
@@ -87,7 +88,7 @@ internal fun HomeScreen(
             horizontalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = balance.toString(),
+                text = formatSats(balance.toString()),
                 fontFamily = sourceSansSemiBold,
                 fontSize = 40.sp,
                 color = ZephyrusColors.lightPurplePrimary,
