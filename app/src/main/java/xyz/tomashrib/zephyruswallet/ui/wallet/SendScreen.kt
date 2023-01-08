@@ -77,6 +77,7 @@ internal fun SendScreen(navController: NavController){
             TransactionAmountInput(amount)
             TransactionFeeInput(feeRate)
 
+
             Dialog(
                 recipientAddress = recipientAddress.value,
                 amount = amount.value,
@@ -97,7 +98,15 @@ internal fun SendScreen(navController: NavController){
         ){
 
             Button(
-                onClick = { setShowDialog(true) },
+                onClick = {
+
+                    //prevent app crashing when the input fields are empty
+                    if(recipientAddress.value != "" && amount.value != "" && feeRate.value != ""){
+                        setShowDialog(true)
+                    } else{
+                        Log.i(TAG, "The input fields are empty.")
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
