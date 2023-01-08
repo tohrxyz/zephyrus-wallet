@@ -73,6 +73,7 @@ internal fun ReceiveScreen(
     addressViewModel: AddressViewModel = viewModel()
 ){
     val address by addressViewModel.address.observeAsState("Generate new address")
+    addressViewModel.updateAddress()
 
     ConstraintLayout(
         modifier = Modifier
