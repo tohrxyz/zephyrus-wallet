@@ -97,7 +97,7 @@ internal fun SendScreen(navController: NavController){
         ){
 
             Button(
-                onClick = {  },
+                onClick = { setShowDialog(true) },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
