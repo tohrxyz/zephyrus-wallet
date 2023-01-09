@@ -19,4 +19,5 @@
     <string name="pending">Pending...</string>
     <string name="confirmed">Confirmed.</string>
     <string name="recovery_phrase_screen">Recovery Phrase Screen</string>
+    <string name="recover_wallet">Recover Wallet</string>
 </resources>

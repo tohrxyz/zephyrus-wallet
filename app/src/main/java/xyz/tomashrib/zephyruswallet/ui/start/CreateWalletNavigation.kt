@@ -28,6 +28,6 @@ fun CreateWalletNavigation(onBuildWalletButtonClicked: (WalletCreateType) -> Uni
         //this can go to WalletRecoveryScreen
         composable(
             route = Screen.WalletRecoveryScreen.route,
-        ) { WalletRecoveryScreen() }
+        ) { WalletRecoveryScreen(onBuildWalletButtonClicked) }
     }
 }

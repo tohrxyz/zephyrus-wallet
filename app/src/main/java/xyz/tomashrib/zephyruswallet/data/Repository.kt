@@ -34,7 +34,6 @@ object Repository {
     }
 
     fun saveMnemonic(mnemonic: String) {
-        Log.i(TAG, "The recovery phrase is: $mnemonic")
         sharedPreferencesManager.mnemonic = mnemonic
     }
 

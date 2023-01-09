@@ -1,6 +1,5 @@
 package xyz.tomashrib.zephyruswallet.ui
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,7 +14,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import xyz.tomashrib.zephyruswallet.R
 import xyz.tomashrib.zephyruswallet.data.Repository
-import xyz.tomashrib.zephyruswallet.tools.TAG
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
@@ -23,9 +21,7 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 @Composable
 internal fun RecoveryPhraseScreen(navController: NavController){
 
-    Log.i(TAG, "Repository.getMnemonic() return: ${Repository.getMnemonic()}")
     val seedPhrase: String = Repository.getMnemonic()
-    Log.i(TAG, "Seed phrase is: $seedPhrase")
     val wordList: List<String> = seedPhrase.split(" ")
 
     Scaffold(
