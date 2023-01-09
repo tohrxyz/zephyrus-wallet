@@ -59,7 +59,7 @@ object Wallet {
             internalDescriptor = internalDescriptor,
         )
         Repository.saveWallet(path, externalDescriptor, internalDescriptor)
-        Repository.saveMnemonic(Mnemonic.toString())
+        Repository.saveMnemonic(mnemonic.asString())
     }
 
     // only create BIP84 compatible wallets
