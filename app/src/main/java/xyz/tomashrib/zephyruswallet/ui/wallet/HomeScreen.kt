@@ -4,14 +4,14 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,8 +26,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import kotlinx.coroutines.*
 import org.bitcoindevkit.TransactionDetails
 import xyz.tomashrib.zephyruswallet.R
 import xyz.tomashrib.zephyruswallet.data.Wallet
@@ -39,7 +41,7 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSansSemiBold
 import xyz.tomashrib.zephyruswallet.tools.formatSats
 import xyz.tomashrib.zephyruswallet.tools.timestampToString
 
-internal class WalletViewModel : ViewModel() {
+internal class WalletViewModel() : ViewModel() {
 
     private var _balance: MutableLiveData<ULong> = MutableLiveData(0u)
     val balance: LiveData<ULong>
@@ -47,8 +49,19 @@ internal class WalletViewModel : ViewModel() {
 
     fun updateBalance() {
         Wallet.sync()
-        _balance.value = Wallet.getBalance()
+        _balance.postValue(Wallet.getBalance())
         Log.i(TAG, "Balance updated ${Wallet.getBalance()}")
+
+//        viewModelScope.launch(Dispatchers.IO){
+//            Wallet.sync()
+//            Log.i(TAG, "launch: ${Thread.currentThread().name}")
+//
+//            withContext(Dispatchers.Main) {
+//                _balance.postValue(Wallet.getBalance())
+//                Log.i(TAG, "Balance updated ${Wallet.getBalance()}")
+//                Log.i(TAG, "withContext: ${Thread.currentThread().name}")
+//            }
+//        }
     }
 }
 
@@ -66,6 +79,8 @@ internal fun HomeScreen(
         Log.i(TAG, "Creating new blockchain")
         Wallet.createBlockchain()
     }
+
+    val (showSyncDialog, setShowSyncDialog) = remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -97,6 +112,8 @@ internal fun HomeScreen(
                 color = ZephyrusColors.lightPurplePrimary,
             )
         }
+
+//        SyncDialog(isSyncDialogShown = showSyncDialog, setSyncDialogShown = setShowSyncDialog)
 
         if (!networkAvailable) {
             Row(
@@ -233,6 +250,12 @@ internal fun HomeScreen(
                 )
             }
 
+//            if(showSyncDialog){
+//                SyncToast()
+//            }
+
+            ToastDialog(isShown = showSyncDialog, setShown = setShowSyncDialog)
+
             Spacer(Modifier.padding(horizontal = 5.dp))
             Image(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_round_sync_black),
@@ -243,7 +266,11 @@ internal fun HomeScreen(
                         shape = RoundedCornerShape(10.dp)
                     )
                     .weight(0.5f)
-                    .clickable { walletViewModel.updateBalance() }
+                    .clickable {
+                        walletViewModel.updateBalance()
+//                        setShowSyncDialog(false)
+                        setShowSyncDialog(true)
+                    }
                     .clip(RoundedCornerShape(10.dp))
                     .padding(horizontal = 5.dp)
             )
@@ -370,5 +397,36 @@ private fun getTransactionList(transactions: List<TransactionDetails>, isConfirm
                 }
             }
         }
+    }
+}
+//
+//@Composable
+//private fun SyncDialog(isSyncDialogShown: Boolean, setSyncDialogShown: (Boolean) -> Unit) {
+//
+//    if(isSyncDialogShown){
+//        Text(
+//            text = stringResource(R.string.wallet_syncing),
+//            fontFamily = sourceSans,
+//            fontSize = 18.sp,
+//            color = ZephyrusColors.lightPurplePrimary,
+//        )
+//    }
+//}
+
+@Composable
+private fun SyncToast(){
+    val context = LocalContext.current
+//    Toast.makeText(context, stringResource(R.string.wallet_syncing), Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, "Wallet Synced", Toast.LENGTH_SHORT).show()
+
+}
+
+@Composable
+private fun ToastDialog(
+    isShown: Boolean,
+    setShown: (Boolean) -> Unit
+){
+    if(isShown){
+        SyncToast()
     }
 }
