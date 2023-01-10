@@ -4,13 +4,8 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
-import android.view.RoundedCorner
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -22,12 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
@@ -35,6 +28,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import org.bitcoindevkit.TransactionDetails
 import xyz.tomashrib.zephyruswallet.R
 import xyz.tomashrib.zephyruswallet.data.Wallet
 import xyz.tomashrib.zephyruswallet.tools.TAG
@@ -43,6 +37,7 @@ import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSansSemiBold
 import xyz.tomashrib.zephyruswallet.tools.formatSats
+import xyz.tomashrib.zephyruswallet.tools.timestampToString
 
 internal class WalletViewModel : ViewModel() {
 
@@ -63,6 +58,8 @@ internal fun HomeScreen(
     walletViewModel: WalletViewModel = viewModel()
 ) {
 
+    val allTransactions: List<TransactionDetails> = Wallet.getTransactions()
+
     val networkAvailable: Boolean = isOnline(LocalContext.current)
     val balance by walletViewModel.balance.observeAsState()
     if (networkAvailable && !Wallet.isBlockChainCreated()) {
@@ -81,7 +78,6 @@ internal fun HomeScreen(
         Row(
             Modifier
                 .fillMaxWidth()
-//                .background(ZephyrusColors.lightPurplePrimary)
                 .padding(horizontal = 15.dp)
                 .height(120.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -120,30 +116,8 @@ internal fun HomeScreen(
             }
         }
 
-        Spacer(Modifier.padding(50.dp))
+        Spacer(Modifier.padding(30.dp))
 
-//        //button that goes to transaction history screen
-//        Button(
-//            onClick = {  },
-//            colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
-//            shape = RoundedCornerShape(10.dp),
-//            modifier = Modifier
-//                .size(width = 320.dp, height = 100.dp)
-//                .padding(vertical = 10.dp, horizontal = 10.dp)
-//                .shadow(elevation = 4.dp, shape = RoundedCornerShape(10.dp)),
-//        ){
-//            //text which is displayed on the button
-//            Text(
-//                stringResource(R.string.transaction_history),
-//                fontSize = 25.sp,
-//                fontFamily = sourceSans,
-//                textAlign = TextAlign.Center,
-//                lineHeight = 30.sp,
-//                color = ZephyrusColors.darkerPurpleOnPrimary,
-//            )
-//        }
-
-        //transaction history box
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -151,13 +125,11 @@ internal fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp)
-//                .background(ZephyrusColors.darkerPurpleOnPrimary, shape = RoundedCornerShape(10.dp))
         ){
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .background(ZephyrusColors.fontColorWhite)
-//                    .border(2.dp, ZephyrusColors.lightPurplePrimary)
                     .padding(horizontal = 15.dp, vertical = 8.dp),
             ) {
                 Text(
@@ -171,23 +143,29 @@ internal fun HomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .height(80.dp)
-//                    .background(ZephyrusColors.lightPurplePrimary)
+                    .height(150.dp)
                     .border(2.dp, ZephyrusColors.fontColorWhite)
                     .padding(horizontal = 15.dp, vertical = 8.dp)
             ){
-                Text(
-                    text = stringResource(R.string.transaction_history),
-                    fontFamily = sourceSans,
-                    fontSize = 15.sp,
-                    color = ZephyrusColors.fontColorWhite,
-                )
+                val scrollState = rememberScrollState()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(state = scrollState)
+                ){
+
+                    Text(
+                        text = getTransactionList(allTransactions, false),
+                        fontFamily = sourceSans,
+                        fontSize = 15.sp,
+                        color = ZephyrusColors.fontColorWhite,
+                    )
+                }
             }
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .background(ZephyrusColors.fontColorWhite)
-//                    .border(2.dp, ZephyrusColors.lightPurplePrimary)
                     .padding(horizontal = 15.dp, vertical = 8.dp),
             ) {
                 Text(
@@ -201,23 +179,30 @@ internal fun HomeScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .height(80.dp)
-//                    .background(ZephyrusColors.lightPurplePrimary)
+                    .height(150.dp)
                     .border(2.dp, ZephyrusColors.fontColorWhite)
                     .padding(horizontal = 15.dp, vertical = 8.dp)
             ){
-                Text(
-                    text = stringResource(R.string.transaction_history),
-                    fontFamily = sourceSans,
-                    fontSize = 15.sp,
-                    color = ZephyrusColors.fontColorWhite,
-                )
+                val scrollState = rememberScrollState()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(state = scrollState)
+                ){
+
+                    Text(
+                        text = getTransactionList(allTransactions, true),
+                        fontFamily = sourceSans,
+                        fontSize = 15.sp,
+                        color = ZephyrusColors.fontColorWhite,
+                    )
+                }
             }
         }
 
 
 
-        Spacer(Modifier.padding(70.dp))
+        Spacer(Modifier.padding(50.dp))
 
         Row(
             modifier = Modifier
@@ -257,9 +242,7 @@ internal fun HomeScreen(
                         ZephyrusColors.fontColorWhite,
                         shape = RoundedCornerShape(10.dp)
                     )
-//                    .height(80.dp)
                     .weight(0.5f)
-//                    .shadow(elevation = 5.dp, shape = RoundedCornerShape(10.dp))
                     .clickable { walletViewModel.updateBalance() }
                     .clip(RoundedCornerShape(10.dp))
                     .padding(horizontal = 5.dp)
@@ -314,4 +297,78 @@ fun isOnline(context: Context): Boolean {
         }
     }
     return false
+}
+
+//function that returns a string containing the transaction history depending on whether the parameter
+//isConfirmed = true -> for confirmed (mined) transactions
+//isConfirmed = false -> for unconfirmed (not mined) transactions
+//this will be displayed on the HomeScreen to be shown as transaction history for the current wallet
+private fun getTransactionList(transactions: List<TransactionDetails>, isConfirmed: Boolean): String {
+
+    if(isConfirmed){
+
+        //filter those transactions out that have confirmation time
+        val confirmedTransactions = transactions.filter {
+
+            //when transaction has valid confirmation time, it was confirmed already
+            it.confirmationTime != null
+        }
+
+        //check if the transaction list is empty
+        if (confirmedTransactions.isEmpty()) {
+            Log.i(TAG, "Confirmed transaction list is empty")
+            return "No confirmed transactions"
+        } else { //when transaction list contains some transactions
+
+            //sort transactions from most recent, by blockheight (when it was confirmed/mined)
+            //higher blockheight == more recent
+            val sortedTransactions = confirmedTransactions.sortedByDescending { it.confirmationTime!!.height }
+
+            //builds string containing all transactions
+            return buildString {
+
+                //for every transaction that exists
+                for (item in sortedTransactions) {
+                    Log.i(TAG, "Transaction list item: $item")
+                    appendLine("Timestamp: ${item.confirmationTime!!.timestamp.timestampToString()}")
+                    appendLine("Received: ${item.received}")
+                    appendLine("Sent: ${item.sent}")
+                    appendLine("Fees: ${item.fee}")
+                    appendLine("Block: ${item.confirmationTime!!.height}")
+                    appendLine("Txid: ${item.txid}")
+                    appendLine()
+                }
+            }
+        }
+    } else{ //when isConfirmed = false (unconfirmed transactions)
+
+        //filter out transactions from the list by confirmation time
+        val unconfirmedTransactions = transactions.filter {
+
+            //when transactions doesnt have confirmation time, it was not confirmed yet
+            it.confirmationTime == null
+        }
+
+        //checks if the list of transactions is empty
+        if (unconfirmedTransactions.isEmpty()) {
+            Log.i(TAG, "Pending transaction list is empty")
+            return "No pending transactions"
+        } else { //when transaction list exists
+
+            //builds string containing all transactions
+            return buildString {
+
+                //for every transaction
+                for (item in unconfirmedTransactions) {
+                    Log.i(TAG, "Pending transaction list item: $item")
+                    appendLine("Timestamp: Pending")
+                    appendLine("Received: ${item.received}")
+                    appendLine("Sent: ${item.sent}")
+                    appendLine("Fees: ${item.fee}")
+                    appendLine("Txid: ${item.txid}")
+                    appendLine()
+                }
+            }
+        }
+    }
 }
