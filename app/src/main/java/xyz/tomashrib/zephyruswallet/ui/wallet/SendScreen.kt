@@ -2,6 +2,7 @@ package xyz.tomashrib.zephyruswallet.ui.wallet
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.OutlinedTextField
@@ -27,6 +28,7 @@ import org.bitcoindevkit.TransactionDetails
 import xyz.tomashrib.zephyruswallet.R
 import xyz.tomashrib.zephyruswallet.data.Wallet
 import xyz.tomashrib.zephyruswallet.tools.TAG
+import xyz.tomashrib.zephyruswallet.tools.formatSats
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
@@ -75,6 +77,22 @@ internal fun SendScreen(navController: NavController){
         ){
             TransactionAddressInput(recipientAddress)
             TransactionAmountInput(amount)
+
+            //wallet balance is displayed here under amount input field
+            Text(
+
+                //formats the wallet balance like #,###,###
+                text = "Balance: ${formatSats(Wallet.getBalance().toString())} Sats",
+                fontSize = 15.sp,
+                fontFamily = sourceSans,
+                color = ZephyrusColors.lightPurplePrimary,
+                modifier = Modifier
+                    .align(Alignment.Start)
+
+                    //when clicked, it puts wallet balance value into amount input field
+                    .clickable { amount.value = Wallet.getBalance().toString() }
+            )
+
             TransactionFeeInput(feeRate)
 
 
@@ -166,7 +184,7 @@ private fun TransactionAmountInput(amount: MutableState<String>){
 
         OutlinedTextField(
             modifier = Modifier
-                .padding(vertical = 10.dp)
+                .padding(vertical = 5.dp)
                 .fillMaxWidth(0.9f),
             value = amount.value,
             onValueChange = { amount.value = it },
