@@ -1,6 +1,8 @@
 package xyz.tomashrib.zephyruswallet.data
 
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.bitcoindevkit.*
 import xyz.tomashrib.zephyruswallet.tools.TAG
 import org.bitcoindevkit.Wallet as BdkWallet
@@ -124,7 +126,14 @@ object Wallet {
 
     fun getTransactions(): List<TransactionDetails> = wallet.listTransactions()
 
-    fun sync() {
+//     suspend fun sync() {
+//        Log.i(TAG, "Wallet is syncing")
+//         withContext(Dispatchers.IO){
+//             wallet.sync(blockchain, LogProgress)
+//         }
+//    }
+
+    fun sync(){
         Log.i(TAG, "Wallet is syncing")
         wallet.sync(blockchain, LogProgress)
     }

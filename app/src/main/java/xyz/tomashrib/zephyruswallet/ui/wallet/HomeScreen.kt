@@ -48,9 +48,24 @@ internal class WalletViewModel() : ViewModel() {
         get() = _balance
 
     fun updateBalance() {
+
         Wallet.sync()
-        _balance.postValue(Wallet.getBalance())
+        _balance.value = Wallet.getBalance()
         Log.i(TAG, "Balance updated ${Wallet.getBalance()}")
+//        viewModelScope.launch {
+//            Wallet.sync()
+//            _balance.value = Wallet.getBalance()
+//        }
+
+//        Wallet.sync()
+
+//        viewModelScope.async{
+//            Wallet.sync()
+//            withContext(Dispatchers.Main){
+//                _balance.postValue(Wallet   .getBalance())
+//                Log.i(TAG, "Balance updated ${Wallet.getBalance()}")
+//            }
+//        }
 
 //        viewModelScope.launch(Dispatchers.IO){
 //            Wallet.sync()
