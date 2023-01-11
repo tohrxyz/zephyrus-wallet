@@ -129,7 +129,7 @@ object Wallet {
         wallet.sync(blockchain, LogProgress)
     }
 
-    fun getBalance(): ULong = wallet.getBalance().total
+    fun getBalance(): ULong = wallet.getBalance().confirmed
 
     fun getNewAddress(): AddressInfo {
         val newAddress = wallet.getAddress(AddressIndex.NEW)
