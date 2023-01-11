@@ -21,4 +21,5 @@
     <string name="recovery_phrase_screen">Recovery Phrase Screen</string>
     <string name="recover_wallet">Recover Wallet</string>
     <string name="wallet_syncing">Wallet is Syncing...</string>
+    <string name="clear_all">Clear All</string>
 </resources>

@@ -90,11 +90,30 @@ internal fun SendScreen(navController: NavController){
                     .align(Alignment.Start)
 
                     //when clicked, it puts wallet balance value into amount input field
-                    .clickable { amount.value = Wallet.getBalance().toString() }
+                    .clickable { amount.value = Wallet
+                        .getBalance()
+                        .toString()
+                    }
             )
 
             TransactionFeeInput(feeRate)
 
+            //clears all input fields
+            Text(
+                text = stringResource(R.string.clear_all),
+                fontSize = 15.sp,
+                fontFamily = sourceSans,
+                color = ZephyrusColors.lightPurplePrimary,
+                modifier = Modifier
+                    .align(Alignment.End)
+
+                    //when clicked it clears all input fields
+                    .clickable {
+                        recipientAddress.value = ""
+                        amount.value = ""
+                        feeRate.value = ""
+                    }
+            )
 
             Dialog(
                 recipientAddress = recipientAddress.value,
