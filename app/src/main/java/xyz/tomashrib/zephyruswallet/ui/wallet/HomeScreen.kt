@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -40,6 +41,7 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSansSemiBold
 import xyz.tomashrib.zephyruswallet.tools.formatSats
 import xyz.tomashrib.zephyruswallet.tools.timestampToString
+import java.nio.channels.SelectableChannel
 
 internal class WalletViewModel() : ViewModel() {
 
@@ -160,12 +162,15 @@ internal fun HomeScreen(
                         .verticalScroll(state = scrollState)
                 ){
 
-                    Text(
-                        text = getTransactionList(allTransactions, false),
-                        fontFamily = sourceSans,
-                        fontSize = 15.sp,
-                        color = ZephyrusColors.fontColorWhite,
-                    )
+                    //make this selectable
+                    SelectionContainer() {
+                        Text(
+                            text = getTransactionList(allTransactions, false),
+                            fontFamily = sourceSans,
+                            fontSize = 15.sp,
+                            color = ZephyrusColors.fontColorWhite,
+                        )
+                    }
                 }
             }
             Box(
@@ -196,12 +201,15 @@ internal fun HomeScreen(
                         .verticalScroll(state = scrollState)
                 ){
 
-                    Text(
-                        text = getTransactionList(allTransactions, true),
-                        fontFamily = sourceSans,
-                        fontSize = 15.sp,
-                        color = ZephyrusColors.fontColorWhite,
-                    )
+                    //make this selectable
+                    SelectionContainer() {
+                        Text(
+                            text = getTransactionList(allTransactions, true),
+                            fontFamily = sourceSans,
+                            fontSize = 15.sp,
+                            color = ZephyrusColors.fontColorWhite,
+                        )
+                    }
                 }
             }
         }
