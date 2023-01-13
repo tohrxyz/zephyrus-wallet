@@ -136,6 +136,7 @@ object Wallet {
     fun sync(){
         Log.i(TAG, "Wallet is syncing")
         wallet.sync(blockchain, LogProgress)
+        Log.i(TAG, "Wallet has synced")
     }
 
     fun getBalance(): ULong = wallet.getBalance().total
