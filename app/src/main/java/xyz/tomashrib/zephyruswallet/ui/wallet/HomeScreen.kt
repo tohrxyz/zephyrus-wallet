@@ -49,9 +49,17 @@ internal class WalletViewModel() : ViewModel() {
         get() = _balance
 
     fun updateBalance() {
-        Wallet.sync()
-        _balance.value = (Wallet.getBalance())
-        Log.i(TAG, "Balance updated ${Wallet.getBalance()}")
+
+        //this enables sync() to run in the background, not freezing the app,
+        //when it is done, it updates UI with balance on the main thread
+        //it should work idk
+        viewModelScope.launch(Dispatchers.IO){
+            Wallet.sync()
+            withContext(Dispatchers.Main){
+                _balance.postValue(Wallet.getBalance())
+                Log.i(TAG, "Balance updated ${Wallet.getBalance()}")
+            }
+        }
     }
 }
 
@@ -71,7 +79,7 @@ internal fun HomeScreen(
     }
 
     val (showSyncDialog, setShowSyncDialog) = remember { mutableStateOf(false) }
-
+    walletViewModel.updateBalance()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -213,8 +221,6 @@ internal fun HomeScreen(
             }
         }
 
-
-
         Spacer(Modifier.padding(50.dp))
 
         Row(
@@ -226,6 +232,7 @@ internal fun HomeScreen(
             horizontalArrangement = Arrangement.Center,
         ){
 
+            //receive button
             Button(
                 onClick = { navController.navigate(Screen.ReceiveScreen.route) },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
@@ -253,6 +260,8 @@ internal fun HomeScreen(
             ToastDialog(isShown = showSyncDialog, setShown = setShowSyncDialog)
 
             Spacer(Modifier.padding(horizontal = 5.dp))
+
+            //sync image button
             Image(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_round_sync_black),
                 contentDescription = "sync",
@@ -263,15 +272,17 @@ internal fun HomeScreen(
                     )
                     .weight(0.5f)
                     .clickable {
-                        walletViewModel.updateBalance()
-//                        setShowSyncDialog(false)
+                        //shows a Toast message
                         setShowSyncDialog(true)
+                        //updates balance with fun from viewModel
+                        walletViewModel.updateBalance()
                     }
                     .clip(RoundedCornerShape(10.dp))
                     .padding(horizontal = 5.dp)
             )
             Spacer(Modifier.padding(horizontal = 5.dp))
 
+            //send button
             Button(
                 onClick = { navController.navigate(Screen.SendScreen.route) },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
@@ -298,6 +309,7 @@ internal fun HomeScreen(
     }
 }
 
+//function that checks if the internet connectivity is available
 fun isOnline(context: Context): Boolean {
     val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
