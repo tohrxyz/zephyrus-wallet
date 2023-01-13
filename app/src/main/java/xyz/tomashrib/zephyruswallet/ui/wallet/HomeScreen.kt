@@ -41,7 +41,6 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSansSemiBold
 import xyz.tomashrib.zephyruswallet.tools.formatSats
 import xyz.tomashrib.zephyruswallet.tools.timestampToString
-import java.nio.channels.SelectableChannel
 
 internal class WalletViewModel() : ViewModel() {
 
