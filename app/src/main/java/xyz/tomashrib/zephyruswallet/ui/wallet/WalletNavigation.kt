@@ -29,7 +29,7 @@ fun WalletNavigation() {
 
         composable(
             route = Screen.SendScreen.route,
-        ) { SendScreen(navController) }
+        ) { SendScreen(navController, LocalContext.current) }
 //
 //        composable(
 //            route = Screen.TransactionsScreen.route,

@@ -1,6 +1,11 @@
 package xyz.tomashrib.zephyruswallet.ui.wallet
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.util.Log
+import android.view.MenuItem
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -33,7 +38,7 @@ import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
 @Composable
-internal fun SendScreen(navController: NavController){
+internal fun SendScreen(navController: NavController, context: Context){
 
     val (showDialog, setShowDialog) =  remember { mutableStateOf(false) }
 
@@ -75,6 +80,24 @@ internal fun SendScreen(navController: NavController){
                     height = Dimension.fillToConstraints
                 }
         ){
+
+            //paste address button
+            Text(
+                text = stringResource(R.string.paste_address),
+                fontSize = 15.sp,
+                fontFamily = sourceSans,
+                color = ZephyrusColors.lightPurplePrimary,
+                modifier = Modifier
+                    .align(Alignment.End)
+                    //upon click, the address from clipboard is inserted into recipientAddress input field
+                    .clickable {
+                        if(pasteFromClipboard(context) != "Wrong format"){
+                            recipientAddress.value = pasteFromClipboard(context)
+                        } else {
+                            Toast.makeText(context, "Wrong address format", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+            )
             TransactionAddressInput(recipientAddress)
             TransactionAmountInput(amount)
 
@@ -90,9 +113,10 @@ internal fun SendScreen(navController: NavController){
                     .align(Alignment.Start)
 
                     //when clicked, it puts wallet balance value into amount input field
-                    .clickable { amount.value = Wallet
-                        .getBalance()
-                        .toString()
+                    .clickable {
+                        amount.value = Wallet
+                            .getBalance()
+                            .toString()
                     }
             )
 
@@ -169,11 +193,10 @@ private fun TransactionAddressInput(recipientAddress: MutableState<String>){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
-//        var inputText by remember { mutableStateOf("") }
 
         OutlinedTextField(
             modifier = Modifier
-                .padding(vertical = 10.dp)
+                .padding(bottom = 10.dp)
                 .fillMaxWidth(0.9f),
             value = recipientAddress.value,
             onValueChange = { recipientAddress.value = it },
@@ -320,8 +343,40 @@ private fun broadcastTransaction(recipientAddress: String, amount: ULong, feeRat
     }
 }
 
-@Preview(device = Devices.PIXEL_4, showBackground = true)
-@Composable
-internal fun PreviewSendScreen() {
-    SendScreen(rememberNavController())
+// returns string from clipboard
+private fun pasteFromClipboard(context: Context): String{
+
+    //lengths of different bitcoin address formats
+    val legacyAddressLenght = 32
+    val segwitAddressLenght = 42
+    val taprootAddressLenght = 62
+
+    //initialize clipboardManager
+    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+    //get input from clipboard
+    val item = clipboardManager.primaryClip!!.getItemAt(0)
+
+    //check if null
+    if(item == null || item.text == null){
+        return "Wrong format"
+        //could return "Null input"
+    }
+
+    //converts clipboard input to String
+    val pasteData = item.text.toString()
+
+    //check if empty
+    if (pasteData.isEmpty()){
+        return "Wrong format"
+        //could return "Empty string"
+    }
+
+    //check if valid bitcoin address format length
+    if(pasteData.length != legacyAddressLenght && pasteData.length != segwitAddressLenght && pasteData.length != taprootAddressLenght) {
+        return "Wrong format"
+    }
+
+    //default return
+    return pasteData
 }
