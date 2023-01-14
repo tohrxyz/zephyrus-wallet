@@ -49,37 +49,33 @@ internal class WalletViewModel() : ViewModel() {
         get() = _balance
 
     fun updateBalance() {
-
-        //this enables sync() to run in the background, not freezing the app,
-        //when it is done, it updates UI with balance on the main thread
-        //it should work idk
-        viewModelScope.launch(Dispatchers.IO){
-            Wallet.sync()
-            withContext(Dispatchers.Main){
-                _balance.postValue(Wallet.getBalance())
-                Log.i(TAG, "Balance updated ${Wallet.getBalance()}")
-            }
-        }
+        //syncs Wallet from the electrum server
+        Wallet.sync()
+        //updates balance
+        _balance.value = Wallet.getBalance()
     }
 }
 
 @Composable
 internal fun HomeScreen(
     navController: NavController,
+    context: Context,
     walletViewModel: WalletViewModel = viewModel()
 ) {
 
+    //complete list of all transaction associated with current wallet
     val allTransactions: List<TransactionDetails> = Wallet.getTransactions()
 
+    //checks whether the network is online
     val networkAvailable: Boolean = isOnline(LocalContext.current)
     val balance by walletViewModel.balance.observeAsState()
+
+    //when network is online and blockchain isnt created yet, the new blockchain is created
     if (networkAvailable && !Wallet.isBlockChainCreated()) {
         Log.i(TAG, "Creating new blockchain")
         Wallet.createBlockchain()
     }
 
-    val (showSyncDialog, setShowSyncDialog) = remember { mutableStateOf(false) }
-    walletViewModel.updateBalance()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -88,6 +84,7 @@ internal fun HomeScreen(
     ){
         Spacer(Modifier.padding(30.dp))
 
+        //bar for bitcoin balance
         Row(
             Modifier
                 .fillMaxWidth()
@@ -96,13 +93,18 @@ internal fun HomeScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
+
+            //displays balance number
             Text(
                 text = formatSats(balance.toString()),
                 fontFamily = sourceSansSemiBold,
                 fontSize = 40.sp,
                 color = ZephyrusColors.lightPurplePrimary,
             )
+
             Spacer(Modifier.padding(5.dp))
+
+            //displays the bitcoin unit -> Sats
             Text(
                 text = "Sats",
                 fontFamily = sourceSansSemiBold,
@@ -111,8 +113,7 @@ internal fun HomeScreen(
             )
         }
 
-//        SyncDialog(isSyncDialogShown = showSyncDialog, setSyncDialogShown = setShowSyncDialog)
-
+        //when network is offline, the "Network unavailable" is displayed
         if (!networkAvailable) {
             Row(
                 Modifier
@@ -133,7 +134,7 @@ internal fun HomeScreen(
 
         Spacer(Modifier.padding(30.dp))
 
-
+        //transaction history
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -141,6 +142,8 @@ internal fun HomeScreen(
                 .fillMaxWidth()
                 .padding(5.dp)
         ){
+
+            //unconfirmed transactions box
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -154,7 +157,7 @@ internal fun HomeScreen(
                     color = ZephyrusColors.bgColorBlack,
                 )
             }
-
+            //box where actual unconfirmed transactions are displayed
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -180,6 +183,8 @@ internal fun HomeScreen(
                     }
                 }
             }
+
+            //confirmed transactions box
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -193,7 +198,7 @@ internal fun HomeScreen(
                     color = ZephyrusColors.bgColorBlack,
                 )
             }
-
+            //box where actual confirmed transactions are displayed
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -223,6 +228,7 @@ internal fun HomeScreen(
 
         Spacer(Modifier.padding(50.dp))
 
+        //bottom bar for buttons
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -253,12 +259,6 @@ internal fun HomeScreen(
                 )
             }
 
-//            if(showSyncDialog){
-//                SyncToast()
-//            }
-
-            ToastDialog(isShown = showSyncDialog, setShown = setShowSyncDialog)
-
             Spacer(Modifier.padding(horizontal = 5.dp))
 
             //sync image button
@@ -272,10 +272,10 @@ internal fun HomeScreen(
                     )
                     .weight(0.5f)
                     .clickable {
-                        //shows a Toast message
-                        setShowSyncDialog(true)
                         //updates balance with fun from viewModel
                         walletViewModel.updateBalance()
+                        //shows a Toast message
+                        Toast.makeText(context, "Wallet synced", Toast.LENGTH_SHORT).show()
                     }
                     .clip(RoundedCornerShape(10.dp))
                     .padding(horizontal = 5.dp)
@@ -317,14 +317,17 @@ fun isOnline(context: Context): Boolean {
         connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
     if (capabilities != null) {
         when {
+            //mobile data
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
                 Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
                 return true
             }
+            //wifi
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
                 Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
                 return true
             }
+            //ethernet
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
                 Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
                 return true
@@ -405,36 +408,5 @@ private fun getTransactionList(transactions: List<TransactionDetails>, isConfirm
                 }
             }
         }
-    }
-}
-//
-//@Composable
-//private fun SyncDialog(isSyncDialogShown: Boolean, setSyncDialogShown: (Boolean) -> Unit) {
-//
-//    if(isSyncDialogShown){
-//        Text(
-//            text = stringResource(R.string.wallet_syncing),
-//            fontFamily = sourceSans,
-//            fontSize = 18.sp,
-//            color = ZephyrusColors.lightPurplePrimary,
-//        )
-//    }
-//}
-
-@Composable
-private fun SyncToast(){
-    val context = LocalContext.current
-//    Toast.makeText(context, stringResource(R.string.wallet_syncing), Toast.LENGTH_SHORT).show()
-    Toast.makeText(context, "Wallet Synced", Toast.LENGTH_SHORT).show()
-
-}
-
-@Composable
-private fun ToastDialog(
-    isShown: Boolean,
-    setShown: (Boolean) -> Unit
-){
-    if(isShown){
-        SyncToast()
     }
 }

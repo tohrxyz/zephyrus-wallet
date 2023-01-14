@@ -21,7 +21,7 @@ fun WalletNavigation() {
 
         composable(
             route = Screen.HomeScreen.route,
-        ) { HomeScreen(navController) }
+        ) { HomeScreen(navController, LocalContext.current) }
 
         composable(
             route = Screen.ReceiveScreen.route,
