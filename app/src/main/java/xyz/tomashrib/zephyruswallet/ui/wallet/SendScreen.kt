@@ -1,10 +1,9 @@
 package xyz.tomashrib.zephyruswallet.ui.wallet
 
-import android.content.ClipData
+import android.annotation.SuppressLint
 import android.content.ClipboardManager
 import android.content.Context
 import android.util.Log
-import android.view.MenuItem
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,20 +19,18 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import org.bitcoindevkit.PartiallySignedTransaction
 import org.bitcoindevkit.TransactionDetails
 import xyz.tomashrib.zephyruswallet.R
 import xyz.tomashrib.zephyruswallet.data.Wallet
 import xyz.tomashrib.zephyruswallet.tools.TAG
 import xyz.tomashrib.zephyruswallet.tools.formatSats
+import xyz.tomashrib.zephyruswallet.ui.Screen
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
@@ -89,16 +86,27 @@ internal fun SendScreen(navController: NavController, context: Context){
                 color = ZephyrusColors.lightPurplePrimary,
                 modifier = Modifier
                     .align(Alignment.End)
+
                     //upon click, the address from clipboard is inserted into recipientAddress input field
                     .clickable {
-                        try{
-                            if(pasteFromClipboard(context) != "Wrong format"){
+                        try {
+
+                            //checks if input from clipboard passed safety checks from function
+                            if (pasteFromClipboard(context) != "Wrong format") {
                                 recipientAddress.value = pasteFromClipboard(context)
                             } else {
-                                Toast.makeText(context, "Wrong address format", Toast.LENGTH_SHORT).show()
+
+                                //notifies user that address from clipboard is not of correct format
+                                Toast
+                                    .makeText(context, "Wrong address format", Toast.LENGTH_SHORT)
+                                    .show()
                             }
-                        }catch (e: Exception){
-                            Toast.makeText(context, "Empty clipboard", Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+
+                            //notifies user that they have empty clipboard
+                            Toast
+                                .makeText(context, "Empty clipboard", Toast.LENGTH_SHORT)
+                                .show()
                             Log.i(TAG, "Error while pasting from clipboard: $e")
                         }
                     }
@@ -144,12 +152,15 @@ internal fun SendScreen(navController: NavController, context: Context){
                     }
             )
 
+            //transaction confirmation dialog
             Dialog(
                 recipientAddress = recipientAddress.value,
                 amount = amount.value,
                 feeRate = feeRate.value,
                 showDialog = showDialog,
-                setShowDialog = setShowDialog
+                setShowDialog = setShowDialog,
+                context,
+                navController
             )
         }
 
@@ -171,6 +182,9 @@ internal fun SendScreen(navController: NavController, context: Context){
                         setShowDialog(true)
                     } else{
                         Log.i(TAG, "The input fields are empty.")
+
+                        //notifies user that they didnt enter any inputs
+                        Toast.makeText(context, "Empty input fields", Toast.LENGTH_SHORT).show()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
@@ -227,14 +241,33 @@ private fun TransactionAmountInput(amount: MutableState<String>){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
-//        var inputText by remember { mutableStateOf("") }
 
         OutlinedTextField(
             modifier = Modifier
                 .padding(vertical = 5.dp)
                 .fillMaxWidth(0.9f),
             value = amount.value,
-            onValueChange = { amount.value = it },
+            onValueChange = {
+
+                //does checking if user entered only Integers
+                //amount to send cannot be text nor decimal number
+                try {
+
+                    //if user input can be parsed as Integer
+                    if(it.toIntOrNull() != null){
+                        val num = it.toIntOrNull()
+                        amount.value = num.toString()
+                    }
+
+                    //if not Integer, clear input
+                    //this basically prevents user from ever entering anything, but integer - its kinda workaround
+                    else {
+                        amount.value = ""
+                    }
+                }catch (e: Exception){
+                    Log.i(TAG, "Wrong input amount: $e")
+                }
+            },
             label = {
                 Text(
                     text = stringResource(R.string.send_amount),
@@ -257,14 +290,34 @@ private fun TransactionFeeInput(feeRate: MutableState<String>){
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
-//        var inputText by remember { mutableStateOf("") }
 
         OutlinedTextField(
             modifier = Modifier
                 .padding(vertical = 10.dp)
                 .fillMaxWidth(0.9f),
             value = feeRate.value,
-            onValueChange = { feeRate.value = it },
+            onValueChange = {
+
+                //checks if user entered only Integers
+                try{
+
+                    //does checking if input is Integer
+                    //fee rate cannot be text
+                    //can be float, but for now it Integer is sufficient
+                    if(it.toIntOrNull() != null){
+                        val num = it.toIntOrNull()
+                        feeRate.value = num.toString()
+                    }
+
+                    //if not integer, clear input
+                    //this basically prevents user from ever entering anything, but integer - its kinda workaround
+                    else {
+                        feeRate.value = ""
+                    }
+                }catch (e: Exception){
+                    Log.i(TAG, "Wrong fee input: $e")
+                }
+            },
             label = {
                 Text(
                     text = stringResource(R.string.send_fee_rate),
@@ -282,6 +335,7 @@ private fun TransactionFeeInput(feeRate: MutableState<String>){
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun Dialog(
     recipientAddress: String,
@@ -289,7 +343,23 @@ fun Dialog(
     feeRate: String,
     showDialog: Boolean,
     setShowDialog: (Boolean) -> Unit,
+    context: Context,
+    navController: NavController
 ) {
+    var isEntered = mutableStateOf(false)
+    var totalFee: Int
+    try{
+        //this tries to create a transaction
+        //because we want to get amount of total transaction fees
+        //also needs to include psbt, because Wallet.createTransaction() returns TXBuilder
+        //no further use of psbt
+        val (psbt: PartiallySignedTransaction, txDetails: TransactionDetails) = Wallet.createTransaction(recipientAddress, amount.toULong(), feeRate.toFloat())
+        totalFee = txDetails.fee!!.toInt()
+        isEntered.value = true
+    }catch (e: Exception){
+//        Log.i(TAG, "Started SendScreen just now")
+        totalFee = 0
+    }
     if (showDialog) {
         AlertDialog(
             containerColor = ZephyrusColors.bgColorBlack,
@@ -301,16 +371,22 @@ fun Dialog(
                 )
             },
             text = {
+                //format this so it looks nicer
+                //make more Text() composables and name of things should be bold or different color idk
                 Text(
-                    text = "Send: $amount\nto: $recipientAddress\nFee rate: ${feeRate.toFloat()}",
+                    text = "Send: $amount\nto: $recipientAddress\nFee rate: ${feeRate.toFloat()}\nTotal fee: $totalFee",
                     color = ZephyrusColors.fontColorWhite
                 )
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        broadcastTransaction(recipientAddress, amount.toULong(), feeRate.toFloat())
-                        setShowDialog(false)
+                        try{
+                            broadcastTransaction(recipientAddress, amount.toULong(), feeRate.toFloat(), context, navController)
+                            setShowDialog(false)
+                        }catch(e: Exception){
+                            Log.i(TAG, "Failed broadcast: $e")
+                        }
                     },
                 ) {
                     Text(
@@ -335,7 +411,7 @@ fun Dialog(
     }
 }
 
-private fun broadcastTransaction(recipientAddress: String, amount: ULong, feeRate: Float = 1F) {
+private fun broadcastTransaction(recipientAddress: String, amount: ULong, feeRate: Float = 1F, context: Context, navController: NavController) {
     Log.i(TAG, "Attempting to broadcast transaction with inputs: recipient: $recipientAddress, amount: $amount, fee rate: $feeRate")
     try {
         // create, sign, and broadcast
@@ -343,8 +419,17 @@ private fun broadcastTransaction(recipientAddress: String, amount: ULong, feeRat
         Wallet.sign(psbt)
         val txid: String = Wallet.broadcast(psbt)
         Log.i(TAG, "Transaction was broadcasted! txid: $txid")
+
+        //notifies user about successfully broadcasting their transaction
+        Toast.makeText(context, "Transaction was broadcasted!", Toast.LENGTH_SHORT).show()
+
+        //because its successfull, it goes back to HomeScreen
+        navController.navigate(Screen.HomeScreen.route)
     } catch (e: Throwable) {
         Log.i(TAG, "Broadcast error: ${e.message}")
+
+        //notifies user that they entered invalid address
+        Toast.makeText(context, "Broadcast error: invalid address", Toast.LENGTH_LONG).show()
     }
 }
 
