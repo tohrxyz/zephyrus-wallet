@@ -91,10 +91,15 @@ internal fun SendScreen(navController: NavController, context: Context){
                     .align(Alignment.End)
                     //upon click, the address from clipboard is inserted into recipientAddress input field
                     .clickable {
-                        if(pasteFromClipboard(context) != "Wrong format"){
-                            recipientAddress.value = pasteFromClipboard(context)
-                        } else {
-                            Toast.makeText(context, "Wrong address format", Toast.LENGTH_SHORT).show()
+                        try{
+                            if(pasteFromClipboard(context) != "Wrong format"){
+                                recipientAddress.value = pasteFromClipboard(context)
+                            } else {
+                                Toast.makeText(context, "Wrong address format", Toast.LENGTH_SHORT).show()
+                            }
+                        }catch (e: Exception){
+                            Toast.makeText(context, "Empty clipboard", Toast.LENGTH_SHORT).show()
+                            Log.i(TAG, "Error while pasting from clipboard: $e")
                         }
                     }
             )
@@ -358,7 +363,7 @@ private fun pasteFromClipboard(context: Context): String{
     val item = clipboardManager.primaryClip!!.getItemAt(0)
 
     //check if null
-    if(item == null || item.text == null){
+    if(item == null || item.text == null || clipboardManager.primaryClip == null){
         return "Wrong format"
         //could return "Null input"
     }
