@@ -53,11 +53,19 @@ internal class WalletViewModel() : ViewModel() {
         get() = _balanceUnconfirmed
 
     fun updateBalance() {
-        //syncs Wallet from the electrum server
-        Wallet.sync()
+        //does async call to Wallet.sync(), to not block Main UI Thread
+        viewModelScope.launch(Dispatchers.IO){
+            //syncs Wallet from the electrum server
+            Wallet.sync()
+            //when sync is done, UI is updated in this
+            withContext(Dispatchers.Main){
+                //spendable balance
+                _balance.value = Wallet.getBalance()
+                //unconfirmed balance - receiving from someone
+                _balanceUnconfirmed.value = Wallet.getBalanceUnconfirmed()
+            }
+        }
         //updates balance
-        _balance.value = Wallet.getBalance()
-        _balanceUnconfirmed.value = Wallet.getBalanceUnconfirmed()
     }
 }
 
@@ -311,7 +319,7 @@ internal fun HomeScreen(
                         walletViewModel.updateBalance()
                         //shows a Toast message
                         Toast
-                            .makeText(context, "Wallet synced", Toast.LENGTH_SHORT)
+                            .makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT)
                             .show()
                     }
                     .clip(RoundedCornerShape(10.dp))

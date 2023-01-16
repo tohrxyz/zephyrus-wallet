@@ -133,7 +133,7 @@ object Wallet {
 //         }
 //    }
 
-    fun sync(){
+    suspend fun sync(){
         Log.i(TAG, "Wallet is syncing")
         wallet.sync(blockchain, LogProgress)
         Log.i(TAG, "Wallet has synced")
