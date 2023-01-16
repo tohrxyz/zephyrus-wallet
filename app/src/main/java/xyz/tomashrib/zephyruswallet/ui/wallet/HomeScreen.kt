@@ -48,11 +48,16 @@ internal class WalletViewModel() : ViewModel() {
     val balance: LiveData<ULong>
         get() = _balance
 
+    private var _balanceUnconfirmed: MutableLiveData<ULong> = MutableLiveData(0u)
+    val balanceUnconfirmed: LiveData<ULong>
+        get() = _balanceUnconfirmed
+
     fun updateBalance() {
         //syncs Wallet from the electrum server
         Wallet.sync()
         //updates balance
         _balance.value = Wallet.getBalance()
+        _balanceUnconfirmed.value = Wallet.getBalanceUnconfirmed()
     }
 }
 
@@ -69,6 +74,7 @@ internal fun HomeScreen(
     //checks whether the network is online
     val networkAvailable: Boolean = isOnline(LocalContext.current)
     val balance by walletViewModel.balance.observeAsState()
+    val balanceUnconfirmed by walletViewModel.balanceUnconfirmed.observeAsState()
 
     //when network is online and blockchain isnt created yet, the new blockchain is created
     if (networkAvailable && !Wallet.isBlockChainCreated()) {
@@ -89,7 +95,7 @@ internal fun HomeScreen(
             Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 15.dp)
-                .height(120.dp),
+                .height(40.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
@@ -110,6 +116,35 @@ internal fun HomeScreen(
                 fontFamily = sourceSansSemiBold,
                 fontSize = 40.sp,
                 color = ZephyrusColors.lightPurplePrimary,
+            )
+        }
+
+        //unconfirmed balance
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 15.dp)
+                .height(30.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+
+            //displays balance number
+            Text(
+                text = formatSats(balanceUnconfirmed.toString()),
+                fontFamily = sourceSansSemiBold,
+                fontSize = 20.sp,
+                color = ZephyrusColors.lightGrey,
+            )
+
+            Spacer(Modifier.padding(5.dp))
+
+            //displays the bitcoin unit -> Sats
+            Text(
+                text = "Sats (unconfirmed)",
+                fontFamily = sourceSansSemiBold,
+                fontSize = 20.sp,
+                color = ZephyrusColors.lightGrey,
             )
         }
 
@@ -275,7 +310,9 @@ internal fun HomeScreen(
                         //updates balance with fun from viewModel
                         walletViewModel.updateBalance()
                         //shows a Toast message
-                        Toast.makeText(context, "Wallet synced", Toast.LENGTH_SHORT).show()
+                        Toast
+                            .makeText(context, "Wallet synced", Toast.LENGTH_SHORT)
+                            .show()
                     }
                     .clip(RoundedCornerShape(10.dp))
                     .padding(horizontal = 5.dp)

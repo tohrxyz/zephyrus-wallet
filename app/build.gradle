@@ -16,8 +16,8 @@ android {
         applicationId "xyz.tomashrib.zephyruswallet"
         minSdk 26
         targetSdk 32
-        versionCode 42
-        versionName "0.4.1"
+        versionCode 51
+        versionName "0.5.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

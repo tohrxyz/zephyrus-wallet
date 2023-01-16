@@ -139,7 +139,9 @@ object Wallet {
         Log.i(TAG, "Wallet has synced")
     }
 
-    fun getBalance(): ULong = wallet.getBalance().confirmed
+    fun getBalance(): ULong = wallet.getBalance().spendable
+
+    fun getBalanceUnconfirmed(): ULong = wallet.getBalance().untrustedPending
 
     fun getNewAddress(): AddressInfo {
         val newAddress = wallet.getAddress(AddressIndex.NEW)
