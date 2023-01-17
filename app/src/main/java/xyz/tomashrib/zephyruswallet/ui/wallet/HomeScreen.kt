@@ -1,5 +1,6 @@
 package xyz.tomashrib.zephyruswallet.ui.wallet
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -69,13 +70,13 @@ internal class WalletViewModel() : ViewModel() {
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 internal fun HomeScreen(
     navController: NavController,
     context: Context,
     walletViewModel: WalletViewModel = viewModel()
 ) {
-
     //complete list of all transaction associated with current wallet
     val allTransactions: List<TransactionDetails> = Wallet.getTransactions()
 
@@ -89,6 +90,9 @@ internal fun HomeScreen(
         Log.i(TAG, "Creating new blockchain")
         Wallet.createBlockchain()
     }
+
+//    walletViewModel.updateBalance()
+//    Toast.makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT).show()
 
     Column(
         modifier = Modifier
@@ -283,7 +287,10 @@ internal fun HomeScreen(
 
             //receive button
             Button(
-                onClick = { navController.navigate(Screen.ReceiveScreen.route) },
+                onClick = {
+                            navController.navigate(Screen.ReceiveScreen.route)
+                            Toast.makeText(context, "Generating new address for you...", Toast.LENGTH_SHORT).show()
+                          },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
