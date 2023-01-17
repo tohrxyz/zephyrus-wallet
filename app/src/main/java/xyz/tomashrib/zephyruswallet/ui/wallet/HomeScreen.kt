@@ -25,6 +25,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -94,92 +96,103 @@ internal fun HomeScreen(
 //    walletViewModel.updateBalance()
 //    Toast.makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT).show()
 
-    Column(
+    ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
-            .background(ZephyrusColors.bgColorBlack),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ){
-        Spacer(Modifier.padding(30.dp))
+            .background(ZephyrusColors.bgColorBlack)
+    ) {
+        val (balanceBar, txHistoryBox, buttonsBar) = createRefs()
 
         //bar for bitcoin balance
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 15.dp)
-                .height(40.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+        Column(
+            modifier = Modifier
+                .constrainAs(balanceBar) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+                .padding(top = 60.dp, bottom = 90.dp)
         ) {
-
-            //displays balance number
-            Text(
-                text = formatSats(balance.toString()),
-                fontFamily = sourceSansSemiBold,
-                fontSize = 40.sp,
-                color = ZephyrusColors.lightPurplePrimary,
-            )
-
-            Spacer(Modifier.padding(5.dp))
-
-            //displays the bitcoin unit -> Sats
-            Text(
-                text = "Sats",
-                fontFamily = sourceSansSemiBold,
-                fontSize = 40.sp,
-                color = ZephyrusColors.lightPurplePrimary,
-            )
-        }
-
-        //unconfirmed balance
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 15.dp)
-                .height(30.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-
-            //displays balance number
-            Text(
-                text = formatSats(balanceUnconfirmed.toString()),
-                fontFamily = sourceSansSemiBold,
-                fontSize = 20.sp,
-                color = ZephyrusColors.lightGrey,
-            )
-
-            Spacer(Modifier.padding(5.dp))
-
-            //displays the bitcoin unit -> Sats
-            Text(
-                text = "Sats (unconfirmed)",
-                fontFamily = sourceSansSemiBold,
-                fontSize = 20.sp,
-                color = ZephyrusColors.lightGrey,
-            )
-        }
-
-        //when network is offline, the "Network unavailable" is displayed
-        if (!networkAvailable) {
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .background(color = ZephyrusColors.lightBlue)
-                    .height(50.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 15.dp)
+                    .height(40.dp)
             ) {
+
+                //displays balance number
                 Text(
-                    text = "Network unavailable",
-                    fontFamily = sourceSans,
-                    fontSize = 18.sp,
-                    color = ZephyrusColors.fontColorWhite
+                    text = formatSats(balance.toString()),
+                    fontFamily = sourceSansSemiBold,
+                    fontSize = 40.sp,
+                    color = ZephyrusColors.lightPurplePrimary,
                 )
+
+                Spacer(Modifier.padding(5.dp))
+
+                //displays the bitcoin unit -> Sats
+                Text(
+                    text = "Sats",
+                    fontFamily = sourceSansSemiBold,
+                    fontSize = 40.sp,
+                    color = ZephyrusColors.lightPurplePrimary,
+                )
+            }
+
+            if(balanceUnconfirmed!!.toInt() != 0){
+
+                //unconfirmed balance
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+//                        .padding(horizontal = 15.dp)
+                        .height(30.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+
+                    //displays balance number
+                    Text(
+                        text = "+${formatSats(balanceUnconfirmed.toString())}",
+                        fontFamily = sourceSansSemiBold,
+                        fontSize = 20.sp,
+                        color = ZephyrusColors.lightGrey,
+                    )
+
+//                    Spacer(Modifier.padding(5.dp))
+
+                    //displays the bitcoin unit -> Sats
+                    Text(
+                        text = "  Sats on the way!",
+                        fontFamily = sourceSansSemiBold,
+                        fontSize = 20.sp,
+                        color = ZephyrusColors.lightGrey,
+                    )
+                }
+            }
+
+            //when network is offline, the "Network unavailable" is displayed
+            if (!networkAvailable) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(color = ZephyrusColors.lightBlue)
+                        .height(50.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = "Network unavailable",
+                        fontFamily = sourceSans,
+                        fontSize = 18.sp,
+                        color = ZephyrusColors.fontColorWhite
+                    )
+                }
             }
         }
 
-        Spacer(Modifier.padding(30.dp))
 
         //transaction history
         Column(
@@ -188,8 +201,13 @@ internal fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp)
+                .constrainAs(txHistoryBox){
+                    top.linkTo(balanceBar.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    height = Dimension.fillToConstraints
+                }
         ){
-
             //unconfirmed transactions box
             Box(
                 modifier = Modifier
@@ -273,24 +291,27 @@ internal fun HomeScreen(
             }
         }
 
-        Spacer(Modifier.padding(50.dp))
-
         //bottom bar for buttons
         Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 10.dp)
-                .height(120.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+                .height(120.dp)
+                .constrainAs(buttonsBar){
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
         ){
 
             //receive button
             Button(
                 onClick = {
-                            navController.navigate(Screen.ReceiveScreen.route)
-                            Toast.makeText(context, "Generating new address for you...", Toast.LENGTH_SHORT).show()
-                          },
+                    navController.navigate(Screen.ReceiveScreen.route)
+                    Toast.makeText(context, "Generating new address for you...", Toast.LENGTH_SHORT).show()
+                },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
@@ -358,7 +379,13 @@ internal fun HomeScreen(
             }
 
         }
-    }
+
+
+
+
+    } //constraint end
+
+
 }
 
 //function that checks if the internet connectivity is available
@@ -421,9 +448,9 @@ private fun getTransactionList(transactions: List<TransactionDetails>, isConfirm
                 for (item in sortedTransactions) {
                     Log.i(TAG, "Transaction list item: $item")
                     appendLine("Timestamp: ${item.confirmationTime!!.timestamp.timestampToString()}")
-                    appendLine("Received: ${item.received}")
-                    appendLine("Sent: ${item.sent}")
-                    appendLine("Fees: ${item.fee}")
+                    if(item.received!!.toInt() != 0) { appendLine("Received: ${formatSats(item.received.toString())}") }
+                    if(item.sent!!.toInt() != 0) { appendLine("Sent: ${formatSats(item.sent.toString())}") }
+                    if(item.fee!!.toInt() != 0) { appendLine("Fees: ${formatSats(item.fee.toString())}") }
                     appendLine("Block: ${item.confirmationTime!!.height}")
                     appendLine("Txid: ${item.txid}")
                     appendLine()
@@ -452,9 +479,9 @@ private fun getTransactionList(transactions: List<TransactionDetails>, isConfirm
                 for (item in unconfirmedTransactions) {
                     Log.i(TAG, "Pending transaction list item: $item")
                     appendLine("Timestamp: Pending")
-                    appendLine("Received: ${item.received}")
-                    appendLine("Sent: ${item.sent}")
-                    appendLine("Fees: ${item.fee}")
+                    if(item.received!!.toInt() != 0) { appendLine("Received: ${formatSats(item.received.toString())}") }
+                    if(item.sent!!.toInt() != 0) { appendLine("Sent: ${formatSats(item.sent.toString())}") }
+                    if(item.fee!!.toInt() != 0) { appendLine("Fees: ${formatSats(item.fee.toString())}") }
                     appendLine("Txid: ${item.txid}")
                     appendLine()
                 }
