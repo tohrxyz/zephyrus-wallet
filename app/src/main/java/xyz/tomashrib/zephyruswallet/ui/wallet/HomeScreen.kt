@@ -55,6 +55,9 @@ internal class WalletViewModel() : ViewModel() {
     val balanceUnconfirmed: LiveData<ULong>
         get() = _balanceUnconfirmed
 
+    private var _transactionList: MutableLiveData<List<TransactionDetails>> = MutableLiveData()
+    val transactionList: LiveData<List<TransactionDetails>>
+        get() = _transactionList
     fun updateBalance() {
         //does async call to Wallet.sync(), to not block Main UI Thread
         viewModelScope.launch(Dispatchers.IO){
@@ -66,6 +69,7 @@ internal class WalletViewModel() : ViewModel() {
                 _balance.value = Wallet.getBalance()
                 //unconfirmed balance - receiving from someone
                 _balanceUnconfirmed.value = Wallet.getBalanceUnconfirmed()
+                _transactionList.value = Wallet.getTransactions()
             }
         }
         //updates balance
@@ -80,7 +84,8 @@ internal fun HomeScreen(
     walletViewModel: WalletViewModel = viewModel()
 ) {
     //complete list of all transaction associated with current wallet
-    val allTransactions: List<TransactionDetails> = Wallet.getTransactions()
+//    val allTransactions: List<TransactionDetails> = Wallet.getTransactions()
+    val allTransactions by walletViewModel.transactionList.observeAsState()
 
     //checks whether the network is online
     val networkAvailable: Boolean = isOnline(LocalContext.current)
@@ -201,7 +206,7 @@ internal fun HomeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp)
-                .constrainAs(txHistoryBox){
+                .constrainAs(txHistoryBox) {
                     top.linkTo(balanceBar.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
@@ -209,6 +214,7 @@ internal fun HomeScreen(
                 }
         ){
             //unconfirmed transactions box
+            val str = "No transactions yet."
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -240,7 +246,7 @@ internal fun HomeScreen(
                     //make this selectable
                     SelectionContainer() {
                         Text(
-                            text = getTransactionList(allTransactions, false),
+                            text = "${ allTransactions?.let { getTransactionList(it, false)} ?: str }",
                             fontFamily = sourceSans,
                             fontSize = 15.sp,
                             color = ZephyrusColors.fontColorWhite,
@@ -281,7 +287,7 @@ internal fun HomeScreen(
                     //make this selectable
                     SelectionContainer() {
                         Text(
-                            text = getTransactionList(allTransactions, true),
+                            text = "${ allTransactions?.let { getTransactionList(it, true) } ?: str}",
                             fontFamily = sourceSans,
                             fontSize = 15.sp,
                             color = ZephyrusColors.fontColorWhite,
@@ -297,9 +303,9 @@ internal fun HomeScreen(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp)
+                .padding(bottom = 40.dp, top = 60.dp, start = 10.dp, end = 10.dp)
                 .height(120.dp)
-                .constrainAs(buttonsBar){
+                .constrainAs(buttonsBar) {
                     bottom.linkTo(parent.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
