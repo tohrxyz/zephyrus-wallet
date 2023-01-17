@@ -13,6 +13,7 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -42,6 +43,17 @@ internal fun SendScreen(navController: NavController, context: Context){
     val recipientAddress: MutableState<String> = remember { mutableStateOf("") }
     val amount: MutableState<String> = remember { mutableStateOf("") }
     val feeRate: MutableState<String> = remember { mutableStateOf("") }
+
+    val qrCodeScanner =
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("BTC_Address")
+        ?.observeAsState()
+    qrCodeScanner?.value.let {
+        if (it != null)
+            recipientAddress.value = it
+//            Log.i("qrcode", "naskenovana: ${recipientAddress.value}")
+
+        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("BTC_Address")
+    }
 
     ConstraintLayout(
         modifier = Modifier
@@ -111,6 +123,24 @@ internal fun SendScreen(navController: NavController, context: Context){
                         }
                     }
             )
+
+            Text(
+                text = "Scan QR code",
+                fontSize = 15.sp,
+                fontFamily = sourceSans,
+                color = ZephyrusColors.lightPurplePrimary,
+                modifier = Modifier
+                    .align(Alignment.Start)
+
+                    //upon click, the address from clipboard is inserted into recipientAddress input field
+                    .clickable {
+
+                        navController.navigate(Screen.QRScanScreen.route){
+                            launchSingleTop = true
+                        }
+                    }
+            )
+
             TransactionAddressInput(recipientAddress)
             TransactionAmountInput(amount)
 
