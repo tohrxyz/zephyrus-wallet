@@ -13,6 +13,7 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -42,6 +43,23 @@ internal fun SendScreen(navController: NavController, context: Context){
     val recipientAddress: MutableState<String> = remember { mutableStateOf("") }
     val amount: MutableState<String> = remember { mutableStateOf("") }
     val feeRate: MutableState<String> = remember { mutableStateOf("") }
+
+    val qrCodeScanner =
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("BTC_Address")
+        ?.observeAsState()
+    qrCodeScanner?.value.let {
+        if (it != null){
+            if(it.substring(0,8) == "bitcoin:"){
+                recipientAddress.value = it.substring(8)
+//                Log.i("qrcode", "${it.substring(0,8)} -> ${it.substring(8)}")
+            } else {
+                recipientAddress.value = it
+            }
+        }
+//            Log.i("qrcode", "naskenovana: ${recipientAddress.value}")
+
+        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("BTC_Address")
+    }
 
     ConstraintLayout(
         modifier = Modifier
@@ -74,43 +92,70 @@ internal fun SendScreen(navController: NavController, context: Context){
                     bottom.linkTo(broadcastButton.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    height = Dimension.fillToConstraints
+//                    height = Dimension.fillToConstraints
                 }
         ){
 
-            //paste address button
-            Text(
-                text = stringResource(R.string.paste_address),
-                fontSize = 15.sp,
-                fontFamily = sourceSans,
-                color = ZephyrusColors.lightPurplePrimary,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
-                    .align(Alignment.End)
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+                Text(
+                    text = "Scan QR code",
+                    fontSize = 15.sp,
+                    fontFamily = sourceSans,
+                    color = ZephyrusColors.lightPurplePrimary,
+                    modifier = Modifier
 
-                    //upon click, the address from clipboard is inserted into recipientAddress input field
-                    .clickable {
-                        try {
+                        //upon click, the address from clipboard is inserted into recipientAddress input field
+                        .clickable {
 
-                            //checks if input from clipboard passed safety checks from function
-                            if (pasteFromClipboard(context) != "Wrong format") {
-                                recipientAddress.value = pasteFromClipboard(context)
-                            } else {
-
-                                //notifies user that address from clipboard is not of correct format
-                                Toast
-                                    .makeText(context, "Wrong address format", Toast.LENGTH_SHORT)
-                                    .show()
+                            navController.navigate(Screen.QRScanScreen.route) {
+                                launchSingleTop = true
                             }
-                        } catch (e: Exception) {
-
-                            //notifies user that they have empty clipboard
-                            Toast
-                                .makeText(context, "Empty clipboard", Toast.LENGTH_SHORT)
-                                .show()
-                            Log.i(TAG, "Error while pasting from clipboard: $e")
                         }
-                    }
-            )
+                )
+
+                //paste address button
+                Text(
+                    text = stringResource(R.string.paste_address),
+                    fontSize = 15.sp,
+                    fontFamily = sourceSans,
+                    color = ZephyrusColors.lightPurplePrimary,
+                    modifier = Modifier
+
+                        //upon click, the address from clipboard is inserted into recipientAddress input field
+                        .clickable {
+                            try {
+
+                                //checks if input from clipboard passed safety checks from function
+                                if (pasteFromClipboard(context) != "Wrong format") {
+                                    recipientAddress.value = pasteFromClipboard(context)
+                                } else {
+
+                                    //notifies user that address from clipboard is not of correct format
+                                    Toast
+                                        .makeText(context, "Wrong address format", Toast.LENGTH_SHORT)
+                                        .show()
+                                }
+                            } catch (e: Exception) {
+
+                                //notifies user that they have empty clipboard
+                                Toast
+                                    .makeText(context, "Empty clipboard", Toast.LENGTH_SHORT)
+                                    .show()
+                                Log.i(TAG, "Error while pasting from clipboard: $e")
+                            }
+                        }
+                )
+            }
+
+
+
+
             TransactionAddressInput(recipientAddress)
             TransactionAmountInput(amount)
 
@@ -124,6 +169,7 @@ internal fun SendScreen(navController: NavController, context: Context){
                 color = ZephyrusColors.lightPurplePrimary,
                 modifier = Modifier
                     .align(Alignment.Start)
+                    .padding(start = 20.dp)
 
                     //when clicked, it puts wallet balance value into amount input field
                     .clickable {
@@ -143,6 +189,7 @@ internal fun SendScreen(navController: NavController, context: Context){
                 color = ZephyrusColors.lightPurplePrimary,
                 modifier = Modifier
                     .align(Alignment.End)
+                    .padding(end = 20.dp)
 
                     //when clicked it clears all input fields
                     .clickable {
@@ -218,7 +265,9 @@ private fun TransactionAddressInput(recipientAddress: MutableState<String>){
                 .padding(bottom = 10.dp)
                 .fillMaxWidth(0.9f),
             value = recipientAddress.value,
-            onValueChange = { recipientAddress.value = it },
+            onValueChange = {
+                recipientAddress.value = it
+            },
             label = {
                 Text(
                     text = stringResource(R.string.send_address),

@@ -34,5 +34,8 @@ fun WalletNavigation() {
 //        composable(
 //            route = Screen.TransactionsScreen.route,
 //        ) { TransactionsScreen(navController) }
+        composable(
+            route = Screen.QRScanScreen.route,
+        ) { QRScanScreen(navController = navController)}
     }
 }
