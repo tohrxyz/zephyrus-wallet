@@ -48,8 +48,13 @@ internal fun SendScreen(navController: NavController, context: Context){
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("BTC_Address")
         ?.observeAsState()
     qrCodeScanner?.value.let {
-        if (it != null)
-            recipientAddress.value = it
+        if (it != null){
+            if(it.substring(0,7) != "bitcoin:"){
+                recipientAddress.value = it.substring(8)
+            } else {
+                recipientAddress.value = it
+            }
+        }
 //            Log.i("qrcode", "naskenovana: ${recipientAddress.value}")
 
         navController.currentBackStackEntry?.savedStateHandle?.remove<String>("BTC_Address")
@@ -86,9 +91,25 @@ internal fun SendScreen(navController: NavController, context: Context){
                     bottom.linkTo(broadcastButton.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    height = Dimension.fillToConstraints
+//                    height = Dimension.fillToConstraints
                 }
         ){
+
+            Text(
+                text = "Scan QR code",
+                fontSize = 15.sp,
+                fontFamily = sourceSans,
+                color = ZephyrusColors.lightPurplePrimary,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    //upon click, the address from clipboard is inserted into recipientAddress input field
+                    .clickable {
+
+                        navController.navigate(Screen.QRScanScreen.route){
+                            launchSingleTop = true
+                        }
+                    }
+            )
 
             //paste address button
             Text(
@@ -124,22 +145,7 @@ internal fun SendScreen(navController: NavController, context: Context){
                     }
             )
 
-            Text(
-                text = "Scan QR code",
-                fontSize = 15.sp,
-                fontFamily = sourceSans,
-                color = ZephyrusColors.lightPurplePrimary,
-                modifier = Modifier
-                    .align(Alignment.Start)
 
-                    //upon click, the address from clipboard is inserted into recipientAddress input field
-                    .clickable {
-
-                        navController.navigate(Screen.QRScanScreen.route){
-                            launchSingleTop = true
-                        }
-                    }
-            )
 
             TransactionAddressInput(recipientAddress)
             TransactionAmountInput(amount)
@@ -248,7 +254,9 @@ private fun TransactionAddressInput(recipientAddress: MutableState<String>){
                 .padding(bottom = 10.dp)
                 .fillMaxWidth(0.9f),
             value = recipientAddress.value,
-            onValueChange = { recipientAddress.value = it },
+            onValueChange = {
+                recipientAddress.value = it
+            },
             label = {
                 Text(
                     text = stringResource(R.string.send_address),
