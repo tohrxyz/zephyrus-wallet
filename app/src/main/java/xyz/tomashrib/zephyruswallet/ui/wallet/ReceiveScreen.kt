@@ -125,12 +125,16 @@ internal fun ReceiveScreen(
                     Modifier.size(250.dp)
                 )
                 Spacer(modifier = Modifier.padding(vertical = 20.dp))
-                SelectionContainer {
+                SelectionContainer(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .padding(start = 5.dp)
+                ) {
                     Text(
-                        text = address,
+                        text = readableAddress(address),
                         fontFamily = sourceSans,
                         color = ZephyrusColors.fontColorWhite,
-                        fontSize = 15.sp,
+                        fontSize = 22.sp,
                     )
                 }
             }
@@ -225,8 +229,12 @@ private fun copyToClipboard(context: Context, address: String){
     Log.i(TAG, "Address was copied to clipboard!: $address")
 }
 
-//@Preview(device = Devices.PIXEL_4, showBackground = true)
-//@Composable
-//internal fun PreviewReceiveScreen() {
-//    ReceiveScreen(rememberNavController())
-//}
+//makes bitcoin address string more easily readable
+//takes first 5 characters and then the rest of it into 4-character chunks
+//each separated by a whitespace " "
+private fun readableAddress(address: String): String {
+    val firstFive = address.substring(0,5)
+    val addressRest = address.substring(6).chunked(4).joinToString("  ")
+
+    return "$firstFive  $addressRest"
+}
