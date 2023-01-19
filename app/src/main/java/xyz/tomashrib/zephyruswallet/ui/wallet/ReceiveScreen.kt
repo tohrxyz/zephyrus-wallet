@@ -59,9 +59,13 @@ internal class AddressViewModel : ViewModel() {
     val addressIndex: LiveData<UInt>
         get() = _addressIndex
 
-    fun updateAddress() {
+    fun updateAddressLastUnused() {
         _address.value = Wallet.getLastUnusedAddress().address
         _addressIndex.value = Wallet.getLastUnusedAddress().index
+    }
+    fun updateAddressNew() {
+        _address.value = Wallet.getNewAddress().address
+        _addressIndex.value = Wallet.getNewAddress().index
     }
 }
 
@@ -73,7 +77,9 @@ internal fun ReceiveScreen(
     addressViewModel: AddressViewModel = viewModel()
 ){
     val address by addressViewModel.address.observeAsState("Generate new address")
-    addressViewModel.updateAddress()
+
+    //this generates last unused address upon ReceiveScreen composable launch
+    addressViewModel.updateAddressLastUnused()
 
     ConstraintLayout(
         modifier = Modifier
@@ -166,8 +172,9 @@ internal fun ReceiveScreen(
                 .padding(bottom = 25.dp)
         ){
 
+            //this button generates new address every click
             Button(
-                onClick = { addressViewModel.updateAddress() },
+                onClick = { addressViewModel.updateAddressNew() },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
