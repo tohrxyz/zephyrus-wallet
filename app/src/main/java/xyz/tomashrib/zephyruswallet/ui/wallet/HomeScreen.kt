@@ -349,12 +349,16 @@ internal fun HomeScreen(
                     )
                     .weight(0.5f)
                     .clickable {
-                        //updates balance with fun from viewModel
-                        walletViewModel.updateBalance()
-                        //shows a Toast message
-                        Toast
-                            .makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT)
-                            .show()
+                        //only sync when network is online
+                        if(isOnline(context)){
+                            //updates balance with fun from viewModel
+                            walletViewModel.updateBalance()
+
+                            //shows a Toast message
+                            Toast
+                                .makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT)
+                                .show()
+                        } else { Toast.makeText(context, "Network unavailable!", Toast.LENGTH_SHORT).show() }
                     }
                     .clip(RoundedCornerShape(10.dp))
                     .padding(horizontal = 5.dp)
