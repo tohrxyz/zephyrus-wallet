@@ -484,6 +484,7 @@ fun Dialog(
 
 private fun broadcastTransaction(recipientAddress: String, amount: ULong, feeRate: Float = 1F, context: Context, navController: NavController) {
     Log.i(TAG, "Attempting to broadcast transaction with inputs: recipient: $recipientAddress, amount: $amount, fee rate: $feeRate")
+    Toast.makeText(context, "Attempting to broadcast...", Toast.LENGTH_SHORT).show()
     try {
         // create, sign, and broadcast
         val (psbt: PartiallySignedTransaction, txDetails: TransactionDetails)  = Wallet.createTransaction(recipientAddress, amount, feeRate)
