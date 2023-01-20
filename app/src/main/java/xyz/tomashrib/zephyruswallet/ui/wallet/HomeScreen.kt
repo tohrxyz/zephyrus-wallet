@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -350,7 +352,7 @@ internal fun HomeScreen(
                     .weight(0.5f)
                     .clickable {
                         //only sync when network is online
-                        if(isOnline(context)){
+                        if (isOnline(context)) {
                             //updates balance with fun from viewModel
                             walletViewModel.updateBalance()
 
@@ -358,7 +360,11 @@ internal fun HomeScreen(
                             Toast
                                 .makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT)
                                 .show()
-                        } else { Toast.makeText(context, "Network unavailable!", Toast.LENGTH_SHORT).show() }
+                        } else {
+                            Toast
+                                .makeText(context, "Network unavailable!", Toast.LENGTH_SHORT)
+                                .show()
+                        }
                     }
                     .clip(RoundedCornerShape(10.dp))
                     .padding(horizontal = 5.dp)
@@ -499,3 +505,33 @@ private fun getTransactionList(transactions: List<TransactionDetails>, isConfirm
         }
     }
 }
+
+@Composable
+fun TransactionHistoryTile(
+    isPayment: Boolean,
+    isConfirmed: Boolean,
+    received: String,
+    sent: String,
+    timestamp: String
+){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+    ) {
+        if(isConfirmed){
+            Text(
+                text = if(isPayment){ "- $sent"} else { "+ $received"},
+                fontSize = 18.sp,
+                fontFamily = sourceSans,
+                color = if(isPayment){ZephyrusColors.materialRed} else {ZephyrusColors.lightPurplePrimary},
+            )
+        }
+    }
+}
+
+//@Preview(device = Devices.PIXEL_4, showBackground = true)
+//@Composable
+//fun PreviewTransactionHistoryTile(){
+//    TransactionHistoryTile(isPayment = true, isConfirmed = true, received = "23,000", sent = "13,324", timestamp = "jan 3 2023")
+//}
