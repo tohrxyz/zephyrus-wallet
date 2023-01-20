@@ -9,16 +9,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,6 +39,7 @@ import xyz.tomashrib.zephyruswallet.tools.formatSats
 import xyz.tomashrib.zephyruswallet.ui.Screen
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 @Composable
 internal fun SendScreen(navController: NavController, context: Context){
@@ -281,6 +287,9 @@ private fun TransactionAddressInput(recipientAddress: MutableState<String>){
                 unfocusedBorderColor = ZephyrusColors.fontColorWhite,
                 cursorColor = ZephyrusColors.lightPurplePrimary,
             ),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next
+            )
         )
     }
 }
@@ -330,12 +339,18 @@ private fun TransactionAmountInput(amount: MutableState<String>){
                 unfocusedBorderColor = ZephyrusColors.fontColorWhite,
                 cursorColor = ZephyrusColors.lightPurplePrimary,
             ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next
+            )
         )
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun TransactionFeeInput(feeRate: MutableState<String>){
+    val keyboardController = LocalSoftwareKeyboardController.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ){
@@ -380,6 +395,13 @@ private fun TransactionFeeInput(feeRate: MutableState<String>){
                 unfocusedBorderColor = ZephyrusColors.fontColorWhite,
                 cursorColor = ZephyrusColors.lightPurplePrimary,
             ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done,
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = { keyboardController!!.hide() }
+            )
         )
     }
 }
