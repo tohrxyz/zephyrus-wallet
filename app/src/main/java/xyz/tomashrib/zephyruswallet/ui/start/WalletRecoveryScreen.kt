@@ -48,14 +48,19 @@ internal fun WalletRecoveryScreen(
                 .fillMaxHeight(1f)
         ) {
 
+            // references for constraint layout
             val (title, main, recover) = createRefs()
 
+            // clears and creates an empty recovery phrase at the start
             val emptyRecoveryPhrase: Map<Int, String> = mapOf(
                 1 to "", 2 to "", 3 to "", 4 to "", 5 to "", 6 to "",
                 7 to "", 8 to "", 9 to "", 10 to "", 11 to "", 12 to ""
             )
+
+            // mutable values for rewriting the recovery phrase when building
             val (recoveryPhraseWordMap, setRecoveryPhraseWordMap) = remember { mutableStateOf(emptyRecoveryPhrase) }
 
+            // title of the current screen
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -78,6 +83,7 @@ internal fun WalletRecoveryScreen(
                 }
             }
 
+            // composable function for all of 12 input fields for entering parts of the seed recovery phrase
             MyList(
                 recoveryPhraseWordMap,
                 setRecoveryPhraseWordMap,
@@ -89,6 +95,8 @@ internal fun WalletRecoveryScreen(
                     }
             )
 
+            // button that executes building the recovery phrase
+            // if correct builds the wallet and goes to WalletNavigation graph
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -130,12 +138,14 @@ internal fun WalletRecoveryScreen(
     }
 }
 
+// 12 input fields for each word of seed recovery phrase
 @Composable
 fun MyList(
     recoveryPhraseWordMap: Map<Int, String>,
     setRecoveryPhraseWordMap: (Map<Int, String>) -> Unit,
     modifier: Modifier
 ) {
+    // is scrollable
     val scrollState = rememberScrollState()
     Column(
         modifier
@@ -151,6 +161,7 @@ fun MyList(
     }
 }
 
+// individual input field for a word in seed recovery phrase
 @Composable
 fun WordField(
     wordNumber: Int,
@@ -158,6 +169,7 @@ fun WordField(
     setRecoveryPhraseWordMap: (Map<Int, String>) -> Unit,
     focusManager: FocusManager
 ) {
+    // creation and styling of the text input field
     OutlinedTextField(
         value = recoveryWordMap[wordNumber] ?: "elvis is here",
         onValueChange = { newText ->
@@ -185,8 +197,8 @@ fun WordField(
         modifier = Modifier
             .padding(8.dp),
         keyboardOptions = when (wordNumber) {
-            12 -> KeyboardOptions(imeAction = ImeAction.Done)
-            else -> KeyboardOptions(imeAction = ImeAction.Next)
+            12 -> KeyboardOptions(imeAction = ImeAction.Done) // if last input field close the keyboard
+            else -> KeyboardOptions(imeAction = ImeAction.Next) // display "go next" button on keyboard
         },
         keyboardActions = KeyboardActions(
             onNext = { focusManager.moveFocus(FocusDirection.Down) },
@@ -196,6 +208,7 @@ fun WordField(
     )
 }
 
+// builds recovery phrase from all 12 inputs into a joint string
 // input words can have capital letters, space around them, space inside of them
 private fun buildRecoveryPhrase(recoveryPhraseWordMap: Map<Int, String>): String {
     var recoveryPhrase = ""

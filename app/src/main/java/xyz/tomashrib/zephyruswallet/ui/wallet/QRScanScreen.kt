@@ -33,6 +33,7 @@ import xyz.tomashrib.zephyruswallet.tools.QRCodeAnalyzer
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
+// screen where btc address is scanned from a QR code using camera
 @Composable
 internal fun QRScanScreen(navController: NavHostController) {
 
@@ -49,6 +50,8 @@ internal fun QRScanScreen(navController: NavHostController) {
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
+
+    // asks to give a permission to use Camera
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { granted ->
@@ -60,6 +63,7 @@ internal fun QRScanScreen(navController: NavHostController) {
         launcher.launch(Manifest.permission.CAMERA)
     }
 
+    // whole screen with camera vision + cancel button
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         backgroundColor = ZephyrusColors.bgColorBlack,
@@ -81,13 +85,13 @@ internal fun QRScanScreen(navController: NavHostController) {
                     }
             ) {
                 Column {
-                    if (hasCameraPermission) {
+                    if (hasCameraPermission) { // if it has camera permission, it starts to scan
                         AndroidView(
                             factory = { context ->
                                 val previewView = PreviewView(context)
                                 val preview = Preview.Builder().build()
                                 val selector = CameraSelector.Builder()
-                                    .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                                    .requireLensFacing(CameraSelector.LENS_FACING_BACK) // scan with rear camera
                                     .build()
                                 preview.setSurfaceProvider(previewView.surfaceProvider)
                                 val imageAnalysis = ImageAnalysis.Builder()
@@ -95,12 +99,13 @@ internal fun QRScanScreen(navController: NavHostController) {
                                     .build()
                                 imageAnalysis.setAnalyzer(
                                     ContextCompat.getMainExecutor(context),
-                                    QRCodeAnalyzer { result ->
-                                        result?.let {
+                                    QRCodeAnalyzer { result -> // analyzes qr code
+                                        result?.let { // when it has read it
+                                            // puts scanned btc address in and goes step back to send screen
                                             navController.previousBackStackEntry
                                                 ?.savedStateHandle
                                                 ?.set("BTC_Address", it)
-                                            navController.popBackStack()
+                                            navController.popBackStack() // goes step back to send screen
                                         }
                                     }
                                 )
@@ -124,6 +129,7 @@ internal fun QRScanScreen(navController: NavHostController) {
                 }
             }
 
+            // button that cancels qr code scanning and goes back to send screen
             Button(
                 onClick = {
                     navController.popBackStack()

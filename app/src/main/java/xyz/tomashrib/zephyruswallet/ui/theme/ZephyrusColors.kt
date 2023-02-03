@@ -2,6 +2,7 @@ package xyz.tomashrib.zephyruswallet.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// colors that are used in the project are set here
 object ZephyrusColors{
     val bgColorBlack: Color = Color(0xFF1C1B1F)
     val surfaceBlack: Color = Color(0xFF1C1B1F)

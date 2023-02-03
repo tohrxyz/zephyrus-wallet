@@ -17,6 +17,7 @@ import xyz.tomashrib.zephyruswallet.data.Repository
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
+// screen for display of seed words
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RecoveryPhraseScreen(navController: NavController){
@@ -47,6 +48,7 @@ internal fun RecoveryPhraseScreen(navController: NavController){
 
             Spacer(Modifier.padding(vertical = 20.dp))
 
+            // cycle to display each of 12 words
             wordList.forEachIndexed { index, item ->
                 Text(
                     text = "${index + 1}. $item",

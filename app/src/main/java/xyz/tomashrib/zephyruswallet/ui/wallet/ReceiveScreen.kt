@@ -104,6 +104,7 @@ internal fun ReceiveScreen(
                 .padding(top = 80.dp)
         )
 
+        // generated QR code from bitcoin address
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -116,7 +117,7 @@ internal fun ReceiveScreen(
                     height = Dimension.fillToConstraints
                 }
         ){
-            val qrcode: ImageBitmap? = addressToQR(address)
+            val qrcode: ImageBitmap? = addressToQR(address) // converts address string to qr code
             Log.i("ReceiveScreen", "New receive address is $address")
             if (address != "No address yet" && qrcode != null) {
                 Image(
@@ -130,6 +131,7 @@ internal fun ReceiveScreen(
                         .fillMaxWidth(0.7f)
                         .padding(start = 5.dp)
                 ) {
+                    // displays bitcoin address under qr code
                     Text(
                         text = readableAddress(address),
                         fontFamily = sourceSans,
@@ -141,7 +143,10 @@ internal fun ReceiveScreen(
 
             Spacer(Modifier.padding(10.dp))
 
+            // mutable variable for state of copying of address to clipboard
             var addressCopied = mutableStateOf(false)
+
+            // button that copies address to clipboard
             Button(
                 onClick = {
                     copyToClipboard(context, address)
@@ -166,6 +171,7 @@ internal fun ReceiveScreen(
             }
         }
 
+        // buttons
         Column(
             Modifier
                 .constrainAs(buttons) {
@@ -201,6 +207,7 @@ internal fun ReceiveScreen(
     }
 }
 
+// creates QR code from btc address string
 private fun addressToQR(address: String): ImageBitmap? {
     Log.i("ReceiveScreen", "We are generating the QR code for address $address")
     try {
@@ -221,6 +228,7 @@ private fun addressToQR(address: String): ImageBitmap? {
     return null
 }
 
+// copies address string to smartphone clipboard
 private fun copyToClipboard(context: Context, address: String){
     val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val clip = ClipData.newPlainText("address", address)

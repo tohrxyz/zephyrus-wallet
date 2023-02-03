@@ -4,7 +4,7 @@ import android.text.format.DateFormat
 import java.util.Calendar
 import java.util.Locale
 
-// extension function on the ULong timestamp provided in the Transaction.Confirmed type
+// converts ULong from Transaction.Confirmed type to human readable date format
 fun ULong.timestampToString(): String {
     val calendar = Calendar.getInstance(Locale.ENGLISH)
     calendar.timeInMillis = (this * 1000u).toLong()
