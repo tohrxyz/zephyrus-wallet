@@ -9,11 +9,12 @@ object Repository {
     // shared preferences are a way to save/retrieve small pieces of data without building a database
     private lateinit var sharedPreferencesManager: SharedPreferencesManager
 
+    //initialize sharedPreferences
     fun setSharedPreferences(sharedPrefManager: SharedPreferencesManager) {
         sharedPreferencesManager = sharedPrefManager
     }
 
-    // take a look at shared preferences and see if the user already has a wallet saved on device
+    // see if user has already created wallet
     fun doesWalletExist(): Boolean {
         val walletInitialized: Boolean = sharedPreferencesManager.walletInitialised
         Log.i(TAG, "Value of walletInitialized at launch: $walletInitialized")
@@ -33,14 +34,17 @@ object Repository {
         sharedPreferencesManager.changeDescriptor = changeDescriptor
     }
 
+    // save mnemonic to sharedPreferences
     fun saveMnemonic(mnemonic: String) {
         sharedPreferencesManager.mnemonic = mnemonic
     }
 
+    // retrieve mnemonic from sharedPreferences
     fun getMnemonic(): String {
         return sharedPreferencesManager.mnemonic
     }
 
+    // retrieve wallet data necessary for wallet construction
     fun getInitialWalletData(): RequiredInitialWalletData {
         val descriptor: String = sharedPreferencesManager.descriptor
         val changeDescriptor: String = sharedPreferencesManager.changeDescriptor
@@ -48,6 +52,8 @@ object Repository {
     }
 }
 
+// custom data class for descriptor and change descriptor
+// gives these two a structure
 data class RequiredInitialWalletData(
     val descriptor: String,
     val changeDescriptor: String

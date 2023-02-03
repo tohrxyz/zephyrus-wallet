@@ -17,5 +17,6 @@ sealed class Screen(val route: String) {
     object ReceiveScreen : Screen("receive_screen")
     object TransactionsScreen : Screen("transactions_screen")
 
+    // qr code scanning screen
     object QRScanScreen: Screen("qr_scan_screen")
 }

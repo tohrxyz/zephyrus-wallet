@@ -45,21 +45,27 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSansSemiBold
 import xyz.tomashrib.zephyruswallet.tools.formatSats
 import xyz.tomashrib.zephyruswallet.tools.timestampToString
 
+// viewmodel handles the data across screen refreshes
 internal class WalletViewModel() : ViewModel() {
 
+    // handles rewrite of spendable balance
     private var _balance: MutableLiveData<ULong> = MutableLiveData(0u)
     val balance: LiveData<ULong>
         get() = _balance
 
+    // handles rewrite of incoming unconfirmed balance
     private var _balanceUnconfirmed: MutableLiveData<ULong> = MutableLiveData(0u)
     val balanceUnconfirmed: LiveData<ULong>
         get() = _balanceUnconfirmed
 
+    // handles rewrite of transaction history
     private var _transactionList: MutableLiveData<List<TransactionDetails>> = MutableLiveData()
     val transactionList: LiveData<List<TransactionDetails>>
         get() = _transactionList
+
+    // updates balance + transaction history
     fun updateBalance() {
-        //does async call to Wallet.sync(), to not block Main UI Thread
+        //does async call to Wallet.sync(), not to block Main UI Thread
         viewModelScope.launch(Dispatchers.IO){
             //syncs Wallet from the electrum server
             Wallet.sync()
@@ -69,10 +75,10 @@ internal class WalletViewModel() : ViewModel() {
                 _balance.value = Wallet.getBalance()
                 //unconfirmed balance - receiving from someone
                 _balanceUnconfirmed.value = Wallet.getBalanceUnconfirmed()
+                // transaction history
                 _transactionList.value = Wallet.getTransactions()
             }
         }
-        //updates balance
     }
 }
 
@@ -85,11 +91,14 @@ internal fun HomeScreen(
 ) {
     //complete list of all transaction associated with current wallet
 //    val allTransactions: List<TransactionDetails> = Wallet.getTransactions()
+    // updates transaction list every time viewmodel updates it
     val allTransactions by walletViewModel.transactionList.observeAsState()
 
     //checks whether the network is online
     val networkAvailable: Boolean = isOnline(LocalContext.current)
+    // updates spendable balance every time viewmodel updates it
     val balance by walletViewModel.balance.observeAsState()
+    // updates incoming unconfirmed balance every time viewmodel updates it
     val balanceUnconfirmed by walletViewModel.balanceUnconfirmed.observeAsState()
 
     //when network is online and blockchain isnt created yet, the new blockchain is created
@@ -146,6 +155,7 @@ internal fun HomeScreen(
                 )
             }
 
+            // if there is any incoming balance it displays it
             if(balanceUnconfirmed!!.toInt() != 0){
 
                 //unconfirmed balance

@@ -13,6 +13,7 @@ import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.qrcode.QRCodeWriter
 import java.nio.ByteBuffer
 
+// QRCodes specific constant for logging
 private const val tag = "QrCodes"
 
 class QRCodeAnalyzer(
@@ -23,6 +24,8 @@ class QRCodeAnalyzer(
         private val SUPPORTED_IMAGE_FORMATS = listOf(ImageFormat.YUV_420_888, ImageFormat.YUV_422_888, ImageFormat.YUV_444_888)
     }
 
+    // analyzes the image from camera
+    // its prerequisite for scanning btc address from it
     override fun analyze(image: ImageProxy) {
         if (image.format in SUPPORTED_IMAGE_FORMATS) {
             val bytes = image.planes.first().buffer.toByteArray()
@@ -61,6 +64,7 @@ class QRCodeAnalyzer(
     }
 }
 
+// creates QR code from address
 fun addressToQR(address: String): ImageBitmap? {
     Log.i(tag, "We are generating the QR code for address $address")
     try {

@@ -37,6 +37,7 @@ internal fun WalletScreen(navController: NavController){
     val items = listOf(Icons.Default.Favorite, Icons.Default.Face, Icons.Default.Email, Icons.Default.Face)
     val selectedItem = remember { mutableStateOf(items[0]) }
 
+    // navigation drawer for different wallet screens and drawer where are more options
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContainerColor = ZephyrusColors.bgColorBlack,
@@ -74,6 +75,7 @@ internal fun WalletScreen(navController: NavController){
 
             }
 
+            // option to go to "Recovery Phrase" screen in the side navigation drawer
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.recovery_phrase)) },
                 selected = items[0] == selectedItem.value,
@@ -87,6 +89,7 @@ internal fun WalletScreen(navController: NavController){
                 )
             )
         },
+        // the default content that is showed
         content = {
           Scaffold(){
               WalletNavigation()

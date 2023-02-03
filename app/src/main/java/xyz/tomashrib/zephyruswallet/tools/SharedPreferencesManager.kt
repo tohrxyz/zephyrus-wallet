@@ -8,6 +8,7 @@ private const val PREFS_DESCRIPTOR = "descriptor"
 private const val PREFS_CHANGE_DESCRIPTOR = "changeDescriptor"
 private const val PREFS_MNEMONIC = "mnemonic"
 
+// handles saving and retrieving data from storage (shared preferences)
 class SharedPreferencesManager(private val sharedPreferences: SharedPreferences) {
 
     var path: String

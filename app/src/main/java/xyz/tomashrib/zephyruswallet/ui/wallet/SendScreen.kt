@@ -102,6 +102,7 @@ internal fun SendScreen(navController: NavController, context: Context){
                 }
         ){
 
+            // displays text, upon click goes to scan qr code
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -116,7 +117,7 @@ internal fun SendScreen(navController: NavController, context: Context){
                     color = ZephyrusColors.lightPurplePrimary,
                     modifier = Modifier
 
-                        //upon click, the address from clipboard is inserted into recipientAddress input field
+                        //upon click, it goes to qr code scan screen
                         .clickable {
 
                             navController.navigate(Screen.QRScanScreen.route) {
@@ -159,10 +160,10 @@ internal fun SendScreen(navController: NavController, context: Context){
                 )
             }
 
-
-
-
+            // input field for address entry
             TransactionAddressInput(recipientAddress)
+
+            // input field for amount entry
             TransactionAmountInput(amount)
 
             //wallet balance is displayed here under amount input field
@@ -185,6 +186,7 @@ internal fun SendScreen(navController: NavController, context: Context){
                     }
             )
 
+            // input field for fee rate entry
             TransactionFeeInput(feeRate)
 
             //clears all input fields
@@ -217,6 +219,7 @@ internal fun SendScreen(navController: NavController, context: Context){
             )
         }
 
+        // layout for send button
         Column(
             Modifier
                 .constrainAs(broadcastButton) {
@@ -227,6 +230,7 @@ internal fun SendScreen(navController: NavController, context: Context){
                 .padding(bottom = 40.dp)
         ){
 
+            // button that envokes transaction confirmation Dialog
             Button(
                 onClick = {
 
@@ -260,6 +264,7 @@ internal fun SendScreen(navController: NavController, context: Context){
     }
 }
 
+// styling for address  input field
 @Composable
 private fun TransactionAddressInput(recipientAddress: MutableState<String>){
     Column(
@@ -288,12 +293,13 @@ private fun TransactionAddressInput(recipientAddress: MutableState<String>){
                 cursorColor = ZephyrusColors.lightPurplePrimary,
             ),
             keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next
+                imeAction = ImeAction.Next // displays 'go next' button on keyboard
             )
         )
     }
 }
 
+// sending amount input field
 @Composable
 private fun TransactionAmountInput(amount: MutableState<String>){
     Column(
@@ -340,13 +346,14 @@ private fun TransactionAmountInput(amount: MutableState<String>){
                 cursorColor = ZephyrusColors.lightPurplePrimary,
             ),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Next
+                keyboardType = KeyboardType.Number, // limits keyboard type for number entry
+                imeAction = ImeAction.Next // displays 'go next' button on keyboard
             )
         )
     }
 }
 
+// fee rate input field
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun TransactionFeeInput(feeRate: MutableState<String>){
@@ -396,16 +403,17 @@ private fun TransactionFeeInput(feeRate: MutableState<String>){
                 cursorColor = ZephyrusColors.lightPurplePrimary,
             ),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Done,
+                keyboardType = KeyboardType.Number, // limits keyboard type for number entry
+                imeAction = ImeAction.Done, // displays 'done' on keyboard
             ),
             keyboardActions = KeyboardActions(
-                onDone = { keyboardController!!.hide() }
+                onDone = { keyboardController!!.hide() } // hides keyboard when 'gone' is clicked
             )
         )
     }
 }
 
+// transcation confirmation dialog
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun Dialog(
@@ -417,8 +425,8 @@ fun Dialog(
     context: Context,
     navController: NavController
 ) {
-    var isEntered = mutableStateOf(false)
-    var totalFee: Int
+    var isEntered = mutableStateOf(false) // mutable variable for state of isEntered value
+    var totalFee: Int // variable for total fee to be used when sending btc tx
     try{
         //this tries to create a transaction
         //because we want to get amount of total transaction fees
@@ -431,6 +439,8 @@ fun Dialog(
 //        Log.i(TAG, "Started SendScreen just now")
         totalFee = 0
     }
+
+    // when it should be displayed
     if (showDialog) {
         AlertDialog(
             containerColor = ZephyrusColors.bgColorBlack,
@@ -453,8 +463,9 @@ fun Dialog(
                 TextButton(
                     onClick = {
                         try{
+                            // attempts to broadcast transaction to network
                             broadcastTransaction(recipientAddress, amount.toULong(), feeRate.toFloat(), context, navController)
-                            setShowDialog(false)
+                            setShowDialog(false) // closes dialog
                         }catch(e: Exception){
                             Log.i(TAG, "Failed broadcast: $e")
                         }
@@ -469,7 +480,7 @@ fun Dialog(
             dismissButton = {
                 TextButton(
                     onClick = {
-                        setShowDialog(false)
+                        setShowDialog(false) // closes dialog
                     },
                 ) {
                     Text(
@@ -482,11 +493,12 @@ fun Dialog(
     }
 }
 
+// attempts to broadcast transaction to bitcoin network
 private fun broadcastTransaction(recipientAddress: String, amount: ULong, feeRate: Float = 1F, context: Context, navController: NavController) {
     Log.i(TAG, "Attempting to broadcast transaction with inputs: recipient: $recipientAddress, amount: $amount, fee rate: $feeRate")
-    Toast.makeText(context, "Attempting to broadcast...", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, "Attempting to broadcast...", Toast.LENGTH_SHORT).show() // notifies user
     try {
-        // create, sign, and broadcast
+        // create, sign, and broadcast transaction
         val (psbt: PartiallySignedTransaction, txDetails: TransactionDetails)  = Wallet.createTransaction(recipientAddress, amount, feeRate)
         Wallet.sign(psbt)
         val txid: String = Wallet.broadcast(psbt)
