@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
+import android.widget.Space
 import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -200,8 +201,22 @@ internal fun HomeScreen(
             }
         }
 
-        //this should display transaction history
-        allTransactions?.let { TransactionHistoryList(transactions = it) }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+                .constrainAs(txHistoryBox) {
+                    top.linkTo(balanceBar.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(buttonsBar.top)
+                }
+        ){
+            //this should display transaction history
+            allTransactions?.let { TransactionHistoryList(transactions = it) }
+        }
 
         //bottom bar for buttons
         Row(
@@ -334,14 +349,23 @@ fun isOnline(context: Context): Boolean {
 fun TransactionHistoryList(transactions: List<TransactionDetails>){
     val sortedTransactions = transactions.sortedByDescending { it.confirmationTime!!.height }
 
-    for(item in sortedTransactions){
-        TransactionHistoryTile(
-            isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
-            isConfirmed = (checkIsConfirmed(item.confirmationTime.toString())),
-            received = item.received.toString(),
-            sent = item.sent.toString(),
-            timestamp = item.confirmationTime!!.timestamp.timestampToString()
-        )
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp, horizontal = 10.dp)
+    ) {
+        for(item in sortedTransactions){
+            TransactionHistoryTile(
+                isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
+                isConfirmed = (checkIsConfirmed(item.confirmationTime.toString())),
+                received = item.received.toString(),
+                sent = item.sent.toString(),
+                timestamp = item.confirmationTime!!.timestamp.timestampToString()
+            )
+            Spacer(Modifier.padding(vertical = 10.dp))
+        }
     }
 }
 
@@ -355,6 +379,8 @@ fun TransactionHistoryTile(
     timestamp: String
 ){
     Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
@@ -362,35 +388,58 @@ fun TransactionHistoryTile(
 
         // for confirmed transactions
         if(isConfirmed){
-            // displays how much was sent/received
-            Text(
-                text = if(isPayment){ "- $sent"} else { "+ $received"},
-                fontSize = 18.sp,
-                fontFamily = sourceSans,
-                color = if(isPayment){ZephyrusColors.materialRed} else {ZephyrusColors.lightPurplePrimary},
-            )
-            // displays when (time)
-            Text(
-                text = timestamp,
-                fontSize = 18.sp,
-                fontFamily = sourceSans,
-                color = ZephyrusColors.lightPurplePrimary,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+//                    .background(ZephyrusColors.bgColorBlack, shape = RoundedCornerShape(5.dp))
+                    .height(50.dp)
+                    .border(2.dp, if(isPayment){ ZephyrusColors.tertiaryKindaRedLight} else {ZephyrusColors.lightBlue}, RoundedCornerShape(4.dp))
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ){
+                // displays how much was sent/received
+                Text(
+                    text = if(isPayment){ "- ${formatSats(sent)}"} else { "+ ${formatSats(received)}"},
+                    fontSize = 18.sp,
+                    fontFamily = sourceSans,
+                    color = if(isPayment){ZephyrusColors.tertiaryKindaRedLight} else {ZephyrusColors.lightBlue},
+                )
+                Spacer(Modifier.padding(10.dp))
+                // displays when (time)
+                Text(
+                    text = timestamp,
+                    fontSize = 15.sp,
+                    fontFamily = sourceSans,
+                    color = if(isPayment){ZephyrusColors.tertiaryKindaRedLight} else{ZephyrusColors.lightBlue},
+                )
+            }
         } else{ // for unconfirmed/pending transactions
-            // displays how much was sent/received
-            Text(
-                text = if(isPayment){ "- $sent"} else { "+ $received"},
-                fontSize = 18.sp,
-                fontFamily = sourceSans,
-                color = ZephyrusColors.lightGrey,
-            )
-            // displays when (time)
-            Text(
-                text = "Pending",
-                fontSize = 18.sp,
-                fontFamily = sourceSans,
-                color = ZephyrusColors.lightGrey,
-            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .height(50.dp)
+                    .border(2.dp, ZephyrusColors.lightGreyContainer, RoundedCornerShape(4.dp))
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ){
+                // displays how much was sent/received
+                Text(
+                    text = if(isPayment){ "- $sent"} else { "+ $received"},
+                    fontSize = 18.sp,
+                    fontFamily = sourceSans,
+                    color = ZephyrusColors.lightGrey,
+                )
+                // displays when (time)
+                Text(
+                    text = "Pending",
+                    fontSize = 18.sp,
+                    fontFamily = sourceSans,
+                    color = ZephyrusColors.lightGrey,
+                )
+            }
         }
     }
 }
