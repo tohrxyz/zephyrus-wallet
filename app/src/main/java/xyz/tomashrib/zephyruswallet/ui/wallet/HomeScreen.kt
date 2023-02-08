@@ -354,12 +354,15 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
         it.confirmationTime != null
     }
 
+    val scrollState = rememberScrollState()
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
+            .height(500.dp)
             .padding(vertical = 10.dp, horizontal = 10.dp)
+            .verticalScroll(scrollState)
     ) {
         for(item in transactions){
             if (item.confirmationTime == null){
@@ -409,7 +412,13 @@ fun TransactionHistoryTile(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .height(50.dp)
-                    .border(2.dp, if(isPayment){ ZephyrusColors.tertiaryKindaRedLight} else {ZephyrusColors.lightBlue}, RoundedCornerShape(4.dp))
+                    .border(
+                        2.dp, if (isPayment) {
+                            ZephyrusColors.tertiaryKindaRedLight
+                        } else {
+                            ZephyrusColors.lightBlue
+                        }, RoundedCornerShape(4.dp)
+                    )
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ){
