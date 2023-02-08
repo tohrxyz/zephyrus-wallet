@@ -506,6 +506,7 @@ private fun getTransactionList(transactions: List<TransactionDetails>, isConfirm
     }
 }
 
+//tile for display of a single transaction record (like a row)
 @Composable
 fun TransactionHistoryTile(
     isPayment: Boolean,
@@ -519,16 +520,34 @@ fun TransactionHistoryTile(
             .fillMaxWidth()
             .height(40.dp)
     ) {
+
+        // for confirmed transactions
         if(isConfirmed){
+            // displays how much was sent/received
             Text(
                 text = if(isPayment){ "- $sent"} else { "+ $received"},
                 fontSize = 18.sp,
                 fontFamily = sourceSans,
                 color = if(isPayment){ZephyrusColors.materialRed} else {ZephyrusColors.lightPurplePrimary},
             )
-        } else{
+            // displays when (time)
+            Text(
+                text = timestamp,
+                fontSize = 18.sp,
+                fontFamily = sourceSans,
+                color = ZephyrusColors.lightPurplePrimary,
+            )
+        } else{ // for unconfirmed/pending transactions
+            // displays how much was sent/received
             Text(
                 text = if(isPayment){ "- $sent"} else { "+ $received"},
+                fontSize = 18.sp,
+                fontFamily = sourceSans,
+                color = ZephyrusColors.lightGrey,
+            )
+            // displays when (time)
+            Text(
+                text = "Pending",
                 fontSize = 18.sp,
                 fontFamily = sourceSans,
                 color = ZephyrusColors.lightGrey,
