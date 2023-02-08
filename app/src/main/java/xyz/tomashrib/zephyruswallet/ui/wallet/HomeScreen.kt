@@ -437,7 +437,6 @@ fun isOnline(context: Context): Boolean {
 //isConfirmed = false -> for unconfirmed (not mined) transactions
 //this will be displayed on the HomeScreen to be shown as transaction history for the current wallet
 private fun getTransactionList(transactions: List<TransactionDetails>, isConfirmed: Boolean): String {
-
     if(isConfirmed){
 
         //filter those transactions out that have confirmation time
@@ -563,6 +562,13 @@ fun checkIsPayment(received: String, sent: String): Boolean{
 
     // returns true if received less than sent
     return (receivedSats - sentSats) < 0
+}
+
+// check if tx is confirmed or pending
+fun checkIsConfirmed(confirmationTime: String): Boolean{
+
+    // returns true if it has confirmation time
+    return (confirmationTime != null)
 }
 
 //@Preview(device = Devices.PIXEL_4, showBackground = true)
