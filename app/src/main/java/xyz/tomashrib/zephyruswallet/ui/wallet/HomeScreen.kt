@@ -556,6 +556,15 @@ fun TransactionHistoryTile(
     }
 }
 
+// check if its payment to someone or you receive
+fun checkIsPayment(received: String, sent: String): Boolean{
+    val receivedSats = received.toInt()
+    val sentSats = sent.toInt()
+
+    // returns true if received less than sent
+    return (receivedSats - sentSats) < 0
+}
+
 //@Preview(device = Devices.PIXEL_4, showBackground = true)
 //@Composable
 //fun PreviewTransactionHistoryTile(){
