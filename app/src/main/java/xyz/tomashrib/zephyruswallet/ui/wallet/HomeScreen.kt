@@ -526,6 +526,13 @@ fun TransactionHistoryTile(
                 fontFamily = sourceSans,
                 color = if(isPayment){ZephyrusColors.materialRed} else {ZephyrusColors.lightPurplePrimary},
             )
+        } else{
+            Text(
+                text = if(isPayment){ "- $sent"} else { "+ $received"},
+                fontSize = 18.sp,
+                fontFamily = sourceSans,
+                color = ZephyrusColors.lightGrey,
+            )
         }
     }
 }
