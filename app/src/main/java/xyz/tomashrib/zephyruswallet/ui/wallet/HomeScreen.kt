@@ -347,7 +347,12 @@ fun isOnline(context: Context): Boolean {
 
 @Composable
 fun TransactionHistoryList(transactions: List<TransactionDetails>){
-    val sortedTransactions = transactions.sortedByDescending { it.confirmationTime!!.height }
+    val unconfirmedTransactions = transactions.filter{
+        it.confirmationTime == null
+    }
+    val confirmedTransasctions = transactions.filter{
+        it.confirmationTime != null
+    }
 
     Column(
         verticalArrangement = Arrangement.Center,
@@ -356,15 +361,26 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
             .fillMaxWidth()
             .padding(vertical = 10.dp, horizontal = 10.dp)
     ) {
-        for(item in sortedTransactions){
-            TransactionHistoryTile(
-                isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
-                isConfirmed = (checkIsConfirmed(item.confirmationTime.toString())),
-                received = item.received.toString(),
-                sent = item.sent.toString(),
-                timestamp = item.confirmationTime!!.timestamp.timestampToString()
-            )
-            Spacer(Modifier.padding(vertical = 10.dp))
+        for(item in transactions){
+            if (item.confirmationTime == null){
+                TransactionHistoryTile(
+                    isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
+                    isConfirmed = false,
+                    received = item.received.toString(),
+                    sent = item.sent.toString(),
+                    timestamp = "pending",
+                )
+                Spacer(Modifier.padding(vertical = 10.dp))
+            } else{
+                TransactionHistoryTile(
+                    isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
+                    isConfirmed = (checkIsConfirmed(item.confirmationTime.toString())),
+                    received = item.received.toString(),
+                    sent = item.sent.toString(),
+                    timestamp = item.confirmationTime!!.timestamp.timestampToString()
+                )
+                Spacer(Modifier.padding(vertical = 10.dp))
+            }
         }
     }
 }
@@ -392,7 +408,6 @@ fun TransactionHistoryTile(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
-//                    .background(ZephyrusColors.bgColorBlack, shape = RoundedCornerShape(5.dp))
                     .height(50.dp)
                     .border(2.dp, if(isPayment){ ZephyrusColors.tertiaryKindaRedLight} else {ZephyrusColors.lightBlue}, RoundedCornerShape(4.dp))
                     .fillMaxWidth()
@@ -414,20 +429,20 @@ fun TransactionHistoryTile(
                     color = if(isPayment){ZephyrusColors.tertiaryKindaRedLight} else{ZephyrusColors.lightBlue},
                 )
             }
-        } else{ // for unconfirmed/pending transactions
+        } else { // for unconfirmed/pending transactions
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .height(50.dp)
-                    .border(2.dp, ZephyrusColors.lightGreyContainer, RoundedCornerShape(4.dp))
+                    .border(2.dp, ZephyrusColors.lightGrey, RoundedCornerShape(4.dp))
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ){
                 // displays how much was sent/received
                 Text(
-                    text = if(isPayment){ "- $sent"} else { "+ $received"},
+                    text = if(isPayment){ "- ${formatSats(sent)}"} else { "+ ${formatSats(received)}"},
                     fontSize = 18.sp,
                     fontFamily = sourceSans,
                     color = ZephyrusColors.lightGrey,
