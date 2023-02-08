@@ -14,4 +14,6 @@ object ZephyrusColors{
     val onPrimaryDarkPurpleContainer: Color = Color(0xFFEADDFF)
     val lightBlue: Color = Color(0xFF5e81ac)
     val lightGrey: Color = Color(0xFF696669)
+    val materialRed: Color = Color(0xFF7D5260)
+    val tertiaryKindaRedLight: Color = Color(0xFFEFB8C8)
 }

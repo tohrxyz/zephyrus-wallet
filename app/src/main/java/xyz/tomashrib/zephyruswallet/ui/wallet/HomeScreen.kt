@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
+import android.widget.Space
 import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -23,6 +24,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -208,103 +211,21 @@ internal fun HomeScreen(
             }
         }
 
-
-        //transaction history
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(5.dp)
+                .padding(20.dp)
                 .constrainAs(txHistoryBox) {
                     top.linkTo(balanceBar.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    height = Dimension.fillToConstraints
+                    bottom.linkTo(buttonsBar.top)
                 }
         ){
-            //unconfirmed transactions box
-            val str = "No transactions yet."
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .background(ZephyrusColors.fontColorWhite)
-                    .padding(horizontal = 15.dp, vertical = 8.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.pending),
-                    fontFamily = sourceSans,
-                    fontSize = 20.sp,
-                    color = ZephyrusColors.bgColorBlack,
-                )
-            }
-            //box where actual unconfirmed transactions are displayed
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .height(150.dp)
-                    .border(2.dp, ZephyrusColors.fontColorWhite)
-                    .padding(horizontal = 15.dp, vertical = 8.dp)
-            ){
-                val scrollState = rememberScrollState()
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(state = scrollState)
-                ){
-
-                    //make this selectable
-                    SelectionContainer() {
-                        Text(
-                            text = "${ allTransactions?.let { getTransactionList(it, false)} ?: str }",
-                            fontFamily = sourceSans,
-                            fontSize = 15.sp,
-                            color = ZephyrusColors.fontColorWhite,
-                        )
-                    }
-                }
-            }
-
-            //confirmed transactions box
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .background(ZephyrusColors.fontColorWhite)
-                    .padding(horizontal = 15.dp, vertical = 8.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.confirmed),
-                    fontFamily = sourceSans,
-                    fontSize = 20.sp,
-                    color = ZephyrusColors.bgColorBlack,
-                )
-            }
-            //box where actual confirmed transactions are displayed
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .height(150.dp)
-                    .border(2.dp, ZephyrusColors.fontColorWhite)
-                    .padding(horizontal = 15.dp, vertical = 8.dp)
-            ){
-                val scrollState = rememberScrollState()
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(state = scrollState)
-                ){
-
-                    //make this selectable
-                    SelectionContainer() {
-                        Text(
-                            text = "${ allTransactions?.let { getTransactionList(it, true) } ?: str}",
-                            fontFamily = sourceSans,
-                            fontSize = 15.sp,
-                            color = ZephyrusColors.fontColorWhite,
-                        )
-                    }
-                }
-            }
+            //this should display transaction history
+            allTransactions?.let { TransactionHistoryList(transactions = it) }
         }
 
         //bottom bar for buttons
@@ -360,7 +281,7 @@ internal fun HomeScreen(
                     .weight(0.5f)
                     .clickable {
                         //only sync when network is online
-                        if(isOnline(context)){
+                        if (isOnline(context)) {
                             //updates balance with fun from viewModel
                             walletViewModel.updateBalance()
 
@@ -368,7 +289,11 @@ internal fun HomeScreen(
                             Toast
                                 .makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT)
                                 .show()
-                        } else { Toast.makeText(context, "Network unavailable!", Toast.LENGTH_SHORT).show() }
+                        } else {
+                            Toast
+                                .makeText(context, "Network unavailable!", Toast.LENGTH_SHORT)
+                                .show()
+                        }
                     }
                     .clip(RoundedCornerShape(10.dp))
                     .padding(horizontal = 5.dp)
@@ -394,15 +319,9 @@ internal fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
                         .padding(start = 10.dp)
-
                 )
             }
-
         }
-
-
-
-
     } //constraint end
 
 
@@ -436,76 +355,149 @@ fun isOnline(context: Context): Boolean {
     return false
 }
 
-//function that returns a string containing the transaction history depending on whether the parameter
-//isConfirmed = true -> for confirmed (mined) transactions
-//isConfirmed = false -> for unconfirmed (not mined) transactions
-//this will be displayed on the HomeScreen to be shown as transaction history for the current wallet
-private fun getTransactionList(transactions: List<TransactionDetails>, isConfirmed: Boolean): String {
+@Composable
+fun TransactionHistoryList(transactions: List<TransactionDetails>){
+    val unconfirmedTransactions = transactions.filter{
+        it.confirmationTime == null
+    }
+    val confirmedTransasctions = transactions.filter{
+        it.confirmationTime != null
+    }
 
-    if(isConfirmed){
+    val sortedTxList = transactions.sortedWith(compareByDescending(nullsLast(), { it.confirmationTime?.height }))
 
-        //filter those transactions out that have confirmation time
-        val confirmedTransactions = transactions.filter {
-
-            //when transaction has valid confirmation time, it was confirmed already
-            it.confirmationTime != null
-        }
-
-        //check if the transaction list is empty
-        if (confirmedTransactions.isEmpty()) {
-            Log.i(TAG, "Confirmed transaction list is empty")
-            return "No confirmed transactions"
-        } else { //when transaction list contains some transactions
-
-            //sort transactions from most recent, by blockheight (when it was confirmed/mined)
-            //higher blockheight == more recent
-            val sortedTransactions = confirmedTransactions.sortedByDescending { it.confirmationTime!!.height }
-
-            //builds string containing all transactions
-            return buildString {
-
-                //for every transaction that exists
-                for (item in sortedTransactions) {
-                    Log.i(TAG, "Transaction list item: $item")
-                    appendLine("Timestamp: ${item.confirmationTime!!.timestamp.timestampToString()}")
-                    if(item.received!!.toInt() != 0) { appendLine("Received: ${formatSats(item.received.toString())}") }
-                    if(item.sent!!.toInt() != 0) { appendLine("Sent: ${formatSats(item.sent.toString())}") }
-                    if(item.fee!!.toInt() != 0) { appendLine("Fees: ${formatSats(item.fee.toString())}") }
-                    appendLine("Block: ${item.confirmationTime!!.height}")
-                    appendLine("Txid: ${item.txid}")
-                    appendLine()
-                }
-            }
-        }
-    } else{ //when isConfirmed = false (unconfirmed transactions)
-
-        //filter out transactions from the list by confirmation time
-        val unconfirmedTransactions = transactions.filter {
-
-            //when transactions doesnt have confirmation time, it was not confirmed yet
-            it.confirmationTime == null
-        }
-
-        //checks if the list of transactions is empty
-        if (unconfirmedTransactions.isEmpty()) {
-            Log.i(TAG, "Pending transaction list is empty")
-            return "No pending transactions"
-        } else { //when transaction list exists
-
-            //builds string containing all transactions
-            return buildString {
-
-                //for every transaction
-                for (item in unconfirmedTransactions) {
-                    Log.i(TAG, "Pending transaction list item: $item")
-                    appendLine("Timestamp: Pending")
-                    if(item.received!!.toInt() != 0) { appendLine("Received: ${formatSats(item.received.toString())}") }
-                    if(item.sent!!.toInt() != 0) { appendLine("Sent: ${formatSats(item.sent.toString())}") }
-                    if(item.fee!!.toInt() != 0) { appendLine("Fees: ${formatSats(item.fee.toString())}") }
-                    appendLine("Txid: ${item.txid}")
-                    appendLine()
-                }
+    val scrollState = rememberScrollState()
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(500.dp)
+            .padding(vertical = 10.dp, horizontal = 10.dp)
+            .verticalScroll(scrollState)
+    ) {
+        for(item in sortedTxList){
+            if (item.confirmationTime == null){
+                TransactionHistoryTile(
+                    isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
+                    isConfirmed = false,
+                    received = item.received.toString(),
+                    sent = item.sent.toString(),
+                    timestamp = "pending",
+                )
+                Spacer(Modifier.padding(vertical = 10.dp))
+            } else{
+                TransactionHistoryTile(
+                    isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
+                    isConfirmed = (checkIsConfirmed(item.confirmationTime.toString())),
+                    received = item.received.toString(),
+                    sent = item.sent.toString(),
+                    timestamp = item.confirmationTime!!.timestamp.timestampToString()
+                )
+                Spacer(Modifier.padding(vertical = 10.dp))
             }
         }
     }
 }
+
+//tile for display of a single transaction record (like a row)
+@Composable
+fun TransactionHistoryTile(
+    isPayment: Boolean,
+    isConfirmed: Boolean,
+    received: String,
+    sent: String,
+    timestamp: String
+){
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+    ) {
+
+        // for confirmed transactions
+        if(isConfirmed){
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .height(50.dp)
+                    .border(
+                        2.dp, if (isPayment) {
+                            ZephyrusColors.tertiaryKindaRedLight
+                        } else {
+                            ZephyrusColors.lightBlue
+                        }, RoundedCornerShape(4.dp)
+                    )
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ){
+                // displays how much was sent/received
+                Text(
+                    text = if(isPayment){ "- ${formatSats(sent)}"} else { "+ ${formatSats(received)}"},
+                    fontSize = 18.sp,
+                    fontFamily = sourceSans,
+                    color = if(isPayment){ZephyrusColors.tertiaryKindaRedLight} else {ZephyrusColors.lightBlue},
+                )
+                Spacer(Modifier.padding(10.dp))
+                // displays when (time)
+                Text(
+                    text = timestamp,
+                    fontSize = 15.sp,
+                    fontFamily = sourceSans,
+                    color = if(isPayment){ZephyrusColors.tertiaryKindaRedLight} else{ZephyrusColors.lightBlue},
+                )
+            }
+        } else { // for unconfirmed/pending transactions
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .height(50.dp)
+                    .border(2.dp, ZephyrusColors.lightGrey, RoundedCornerShape(4.dp))
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            ){
+                // displays how much was sent/received
+                Text(
+                    text = if(isPayment){ "- ${formatSats(sent)}"} else { "+ ${formatSats(received)}"},
+                    fontSize = 18.sp,
+                    fontFamily = sourceSans,
+                    color = ZephyrusColors.lightGrey,
+                )
+                // displays when (time)
+                Text(
+                    text = "Pending",
+                    fontSize = 18.sp,
+                    fontFamily = sourceSans,
+                    color = ZephyrusColors.lightGrey,
+                )
+            }
+        }
+    }
+}
+
+// check if its payment to someone or you receive
+fun checkIsPayment(received: String, sent: String): Boolean{
+    val receivedSats = received.toInt()
+    val sentSats = sent.toInt()
+
+    // returns true if received less than sent
+    return (receivedSats - sentSats) < 0
+}
+
+// check if tx is confirmed or pending
+fun checkIsConfirmed(confirmationTime: String): Boolean{
+
+    // returns true if it has confirmation time
+    return (confirmationTime != null)
+}
+
+//@Preview(device = Devices.PIXEL_4, showBackground = true)
+//@Composable
+//fun PreviewTransactionHistoryTile(){
+//    TransactionHistoryTile(isPayment = true, isConfirmed = true, received = "23,000", sent = "13,324", timestamp = "jan 3 2023")
+//}
