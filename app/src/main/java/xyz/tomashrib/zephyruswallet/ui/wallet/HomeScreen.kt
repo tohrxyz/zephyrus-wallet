@@ -200,104 +200,8 @@ internal fun HomeScreen(
             }
         }
 
-
-        //transaction history
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp)
-                .constrainAs(txHistoryBox) {
-                    top.linkTo(balanceBar.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    height = Dimension.fillToConstraints
-                }
-        ){
-            //unconfirmed transactions box
-            val str = "No transactions yet."
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .background(ZephyrusColors.fontColorWhite)
-                    .padding(horizontal = 15.dp, vertical = 8.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.pending),
-                    fontFamily = sourceSans,
-                    fontSize = 20.sp,
-                    color = ZephyrusColors.bgColorBlack,
-                )
-            }
-            //box where actual unconfirmed transactions are displayed
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .height(150.dp)
-                    .border(2.dp, ZephyrusColors.fontColorWhite)
-                    .padding(horizontal = 15.dp, vertical = 8.dp)
-            ){
-                val scrollState = rememberScrollState()
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(state = scrollState)
-                ){
-
-                    //make this selectable
-                    SelectionContainer() {
-                        Text(
-                            text = "${ allTransactions?.let { getTransactionList(it, false)} ?: str }",
-                            fontFamily = sourceSans,
-                            fontSize = 15.sp,
-                            color = ZephyrusColors.fontColorWhite,
-                        )
-                    }
-                }
-            }
-
-            //confirmed transactions box
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .background(ZephyrusColors.fontColorWhite)
-                    .padding(horizontal = 15.dp, vertical = 8.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.confirmed),
-                    fontFamily = sourceSans,
-                    fontSize = 20.sp,
-                    color = ZephyrusColors.bgColorBlack,
-                )
-            }
-            //box where actual confirmed transactions are displayed
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .height(150.dp)
-                    .border(2.dp, ZephyrusColors.fontColorWhite)
-                    .padding(horizontal = 15.dp, vertical = 8.dp)
-            ){
-                val scrollState = rememberScrollState()
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(state = scrollState)
-                ){
-
-                    //make this selectable
-                    SelectionContainer() {
-                        Text(
-                            text = "${ allTransactions?.let { getTransactionList(it, true) } ?: str}",
-                            fontFamily = sourceSans,
-                            fontSize = 15.sp,
-                            color = ZephyrusColors.fontColorWhite,
-                        )
-                    }
-                }
-            }
-        }
+        //this should display transaction history
+        allTransactions?.let { TransactionHistoryList(transactions = it) }
 
         //bottom bar for buttons
         Row(
@@ -390,15 +294,9 @@ internal fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth(0.6f)
                         .padding(start = 10.dp)
-
                 )
             }
-
         }
-
-
-
-
     } //constraint end
 
 
@@ -430,79 +328,6 @@ fun isOnline(context: Context): Boolean {
         }
     }
     return false
-}
-
-//function that returns a string containing the transaction history depending on whether the parameter
-//isConfirmed = true -> for confirmed (mined) transactions
-//isConfirmed = false -> for unconfirmed (not mined) transactions
-//this will be displayed on the HomeScreen to be shown as transaction history for the current wallet
-private fun getTransactionList(transactions: List<TransactionDetails>, isConfirmed: Boolean): String {
-    if(isConfirmed){
-
-        //filter those transactions out that have confirmation time
-        val confirmedTransactions = transactions.filter {
-
-            //when transaction has valid confirmation time, it was confirmed already
-            it.confirmationTime != null
-        }
-
-        //check if the transaction list is empty
-        if (confirmedTransactions.isEmpty()) {
-            Log.i(TAG, "Confirmed transaction list is empty")
-            return "No confirmed transactions"
-        } else { //when transaction list contains some transactions
-
-            //sort transactions from most recent, by blockheight (when it was confirmed/mined)
-            //higher blockheight == more recent
-            val sortedTransactions = confirmedTransactions.sortedByDescending { it.confirmationTime!!.height }
-
-            //builds string containing all transactions
-            return buildString {
-
-                //for every transaction that exists
-                for (item in sortedTransactions) {
-                    Log.i(TAG, "Transaction list item: $item")
-                    appendLine("Timestamp: ${item.confirmationTime!!.timestamp.timestampToString()}")
-                    if(item.received!!.toInt() != 0) { appendLine("Received: ${formatSats(item.received.toString())}") }
-                    if(item.sent!!.toInt() != 0) { appendLine("Sent: ${formatSats(item.sent.toString())}") }
-                    if(item.fee!!.toInt() != 0) { appendLine("Fees: ${formatSats(item.fee.toString())}") }
-                    appendLine("Block: ${item.confirmationTime!!.height}")
-                    appendLine("Txid: ${item.txid}")
-                    appendLine()
-                }
-            }
-        }
-    } else{ //when isConfirmed = false (unconfirmed transactions)
-
-        //filter out transactions from the list by confirmation time
-        val unconfirmedTransactions = transactions.filter {
-
-            //when transactions doesnt have confirmation time, it was not confirmed yet
-            it.confirmationTime == null
-        }
-
-        //checks if the list of transactions is empty
-        if (unconfirmedTransactions.isEmpty()) {
-            Log.i(TAG, "Pending transaction list is empty")
-            return "No pending transactions"
-        } else { //when transaction list exists
-
-            //builds string containing all transactions
-            return buildString {
-
-                //for every transaction
-                for (item in unconfirmedTransactions) {
-                    Log.i(TAG, "Pending transaction list item: $item")
-                    appendLine("Timestamp: Pending")
-                    if(item.received!!.toInt() != 0) { appendLine("Received: ${formatSats(item.received.toString())}") }
-                    if(item.sent!!.toInt() != 0) { appendLine("Sent: ${formatSats(item.sent.toString())}") }
-                    if(item.fee!!.toInt() != 0) { appendLine("Fees: ${formatSats(item.fee.toString())}") }
-                    appendLine("Txid: ${item.txid}")
-                    appendLine()
-                }
-            }
-        }
-    }
 }
 
 @Composable
