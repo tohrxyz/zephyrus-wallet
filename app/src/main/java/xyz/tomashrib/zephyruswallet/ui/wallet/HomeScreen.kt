@@ -211,6 +211,7 @@ internal fun HomeScreen(
             }
         }
 
+        // tx history container
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
@@ -224,7 +225,8 @@ internal fun HomeScreen(
                     bottom.linkTo(buttonsBar.top)
                 }
         ){
-            //this should display transaction history
+
+            //this displays all transactions from history
             allTransactions?.let { TransactionHistoryList(transactions = it) }
         }
 
@@ -357,16 +359,14 @@ fun isOnline(context: Context): Boolean {
 
 @Composable
 fun TransactionHistoryList(transactions: List<TransactionDetails>){
-    val unconfirmedTransactions = transactions.filter{
-        it.confirmationTime == null
-    }
-    val confirmedTransasctions = transactions.filter{
-        it.confirmationTime != null
-    }
 
-    val sortedTxList = transactions.sortedWith(compareByDescending(nullsLast(), { it.confirmationTime?.height }))
+    // sorts transactions by confirmation time, if unconfirmed it goes to the top
+    val sortedTxList = transactions.sortedWith(compareByDescending(nullsLast()) { it.confirmationTime?.height })
 
+    // for scrollable tx history
     val scrollState = rememberScrollState()
+
+    // container for all txs
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -376,7 +376,11 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
             .padding(vertical = 10.dp, horizontal = 10.dp)
             .verticalScroll(scrollState)
     ) {
+
+        // for every transaction in list
         for(item in sortedTxList){
+
+            //if unconfirmed
             if (item.confirmationTime == null){
                 TransactionHistoryTile(
                     isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
@@ -385,8 +389,9 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
                     sent = item.sent.toString(),
                     timestamp = "pending",
                 )
+                // space between
                 Spacer(Modifier.padding(vertical = 10.dp))
-            } else{
+            } else{ // if confirmed
                 TransactionHistoryTile(
                     isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
                     isConfirmed = (checkIsConfirmed(item.confirmationTime.toString())),
@@ -394,6 +399,7 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
                     sent = item.sent.toString(),
                     timestamp = item.confirmationTime!!.timestamp.timestampToString()
                 )
+                // space between
                 Spacer(Modifier.padding(vertical = 10.dp))
             }
         }
