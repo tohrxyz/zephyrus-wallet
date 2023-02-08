@@ -505,6 +505,21 @@ private fun getTransactionList(transactions: List<TransactionDetails>, isConfirm
     }
 }
 
+@Composable
+fun TransactionHistoryList(transactions: List<TransactionDetails>){
+    val sortedTransactions = transactions.sortedByDescending { it.confirmationTime!!.height }
+
+    for(item in sortedTransactions){
+        TransactionHistoryTile(
+            isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
+            isConfirmed = (checkIsConfirmed(item.confirmationTime.toString())),
+            received = item.received.toString(),
+            sent = item.sent.toString(),
+            timestamp = item.confirmationTime!!.timestamp.timestampToString()
+        )
+    }
+}
+
 //tile for display of a single transaction record (like a row)
 @Composable
 fun TransactionHistoryTile(
