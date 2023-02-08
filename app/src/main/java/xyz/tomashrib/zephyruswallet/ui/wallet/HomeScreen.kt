@@ -354,6 +354,8 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
         it.confirmationTime != null
     }
 
+    val sortedTxList = transactions.sortedWith(compareByDescending(nullsLast(), { it.confirmationTime?.height }))
+
     val scrollState = rememberScrollState()
     Column(
         verticalArrangement = Arrangement.Center,
@@ -364,7 +366,7 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
             .padding(vertical = 10.dp, horizontal = 10.dp)
             .verticalScroll(scrollState)
     ) {
-        for(item in transactions){
+        for(item in sortedTxList){
             if (item.confirmationTime == null){
                 TransactionHistoryTile(
                     isPayment = (checkIsPayment(item.received.toString(), item.sent.toString())),
