@@ -451,7 +451,7 @@ fun TransactionHistoryTile(
             ){
                 // displays how much was sent/received
                 Text(
-                    text = if(isPayment){ "- ${formatSats(sent)}"} else { "+ ${formatSats(received)}"},
+                    text = if(isPayment){ "- ${formatSats(sent)} Sats"} else { "+ ${formatSats(received)} Sats"},
                     fontSize = 18.sp,
                     fontFamily = sourceSans,
                     color = if(isPayment){ZephyrusColors.lightPurplePrimary} else {ZephyrusColors.lightBlue},
