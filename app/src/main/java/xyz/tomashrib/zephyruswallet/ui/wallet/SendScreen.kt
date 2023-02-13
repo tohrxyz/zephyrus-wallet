@@ -166,25 +166,51 @@ internal fun SendScreen(navController: NavController, context: Context){
             // input field for amount entry
             TransactionAmountInput(amount)
 
-            //wallet balance is displayed here under amount input field
-            Text(
-
-                //formats the wallet balance like #,###,###
-                text = "Balance: ${formatSats(Wallet.getBalance().toString())} Sats",
-                fontSize = 15.sp,
-                fontFamily = sourceSans,
-                color = ZephyrusColors.lightPurplePrimary,
+            // row layout for two buttons: Balance and Send All
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 20.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+                //wallet balance is displayed here under amount input field
+                Text(
+                    //formats the wallet balance like #,###,###
+                    text = "Balance: ${formatSats(Wallet.getBalance().toString())} Sats",
+                    fontSize = 15.sp,
+                    fontFamily = sourceSans,
+                    color = ZephyrusColors.lightPurplePrimary,
+                )
 
-                    //when clicked, it puts wallet balance value into amount input field
-                    .clickable {
-                        amount.value = Wallet
-                            .getBalance()
-                            .toString()
-                    }
-            )
+                // send all button is displayed here under amount input field
+                Text(
+                    text = "Send All",
+                    fontSize = 15.sp,
+                    fontFamily = sourceSans,
+                    color = ZephyrusColors.lightPurplePrimary,
+                    modifier = Modifier
+                        .padding(start = 20.dp)
+                        .clickable {
+                            try{
+                                // builds a transaction
+                                val (psbt: PartiallySignedTransaction, txDetails: TransactionDetails) = Wallet.createSendAllTransaction(recipientAddress.value, feeRate.value.toFloat())
+                                // puts balance - tx fee into amount field
+                                amount.value = (txDetails.sent - txDetails.fee!!.toULong()).toString()
+                            } catch (e: Exception){
+                                // some instructions for user
+                                if(recipientAddress.value.isEmpty()){
+                                    Toast.makeText(context, "Enter valid address!", Toast.LENGTH_SHORT).show()
+                                }
+                                else if(feeRate.value.isEmpty()){
+                                    Toast.makeText(context, "Enter fee rate!", Toast.LENGTH_SHORT).show()
+                                } else{
+                                    Toast.makeText(context, "$e", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                )
+            }
 
             // input field for fee rate entry
             TransactionFeeInput(feeRate)

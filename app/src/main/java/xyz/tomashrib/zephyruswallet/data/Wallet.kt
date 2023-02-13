@@ -177,4 +177,13 @@ object Wallet {
 
     // checks if blockchain instance is created or not
     fun isBlockChainCreated() = ::blockchain.isInitialized
+
+    // creates a transaction that drains the whole balance of a wallet
+    fun createSendAllTransaction(recipient: String, feeRate: Float): TxBuilderResult {
+        return TxBuilder()
+            .drainWallet()
+            .drainTo(address = recipient)
+            .feeRate(satPerVbyte = feeRate)
+            .finish(wallet)
+    }
 }
