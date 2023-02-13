@@ -432,10 +432,10 @@ fun TransactionHistoryTile(
                     .height(50.dp)
                     .border(
                         2.dp, if (isPayment) {
-                            ZephyrusColors.tertiaryKindaRedLight
+                            ZephyrusColors.lightPurplePrimary
                         } else {
                             ZephyrusColors.lightBlue
-                        }, RoundedCornerShape(4.dp)
+                        }, RoundedCornerShape(8.dp)
                     )
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp, vertical = 5.dp)
@@ -445,7 +445,7 @@ fun TransactionHistoryTile(
                     text = if(isPayment){ "- ${formatSats(sent)}"} else { "+ ${formatSats(received)}"},
                     fontSize = 18.sp,
                     fontFamily = sourceSans,
-                    color = if(isPayment){ZephyrusColors.tertiaryKindaRedLight} else {ZephyrusColors.lightBlue},
+                    color = if(isPayment){ZephyrusColors.lightPurplePrimary} else {ZephyrusColors.lightBlue},
                 )
                 Spacer(Modifier.padding(10.dp))
                 // displays when (time)
@@ -453,7 +453,7 @@ fun TransactionHistoryTile(
                     text = timestamp,
                     fontSize = 15.sp,
                     fontFamily = sourceSans,
-                    color = if(isPayment){ZephyrusColors.tertiaryKindaRedLight} else{ZephyrusColors.lightBlue},
+                    color = if(isPayment){ZephyrusColors.lightPurplePrimary} else{ZephyrusColors.lightBlue},
                 )
             }
         } else { // for unconfirmed/pending transactions
@@ -463,7 +463,7 @@ fun TransactionHistoryTile(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .height(50.dp)
-                    .border(2.dp, ZephyrusColors.lightGrey, RoundedCornerShape(4.dp))
+                    .border(2.dp, ZephyrusColors.lightGrey, RoundedCornerShape(8.dp))
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ){
