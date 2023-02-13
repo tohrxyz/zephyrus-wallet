@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Devices
@@ -362,7 +363,6 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
 
     // sorts transactions by confirmation time, if unconfirmed it goes to the top
     val sortedTxList = transactions.sortedWith(compareByDescending(nullsLast()) { it.confirmationTime?.height })
-
     // for scrollable tx history
     val scrollState = rememberScrollState()
 
@@ -387,6 +387,7 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
                     isConfirmed = false,
                     received = item.received.toString(),
                     sent = item.sent.toString(),
+                    txId = item.txid,
                     timestamp = "pending",
                 )
                 // space between
@@ -397,6 +398,7 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
                     isConfirmed = (checkIsConfirmed(item.confirmationTime.toString())),
                     received = item.received.toString(),
                     sent = item.sent.toString(),
+                    txId = item.txid,
                     timestamp = item.confirmationTime!!.timestamp.timestampToString()
                 )
                 // space between
@@ -413,14 +415,21 @@ fun TransactionHistoryTile(
     isConfirmed: Boolean,
     received: String,
     sent: String,
+    txId: String,
     timestamp: String
 ){
+    val urlHandler = LocalUriHandler.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
+            // when user clicks on specific transaction tile
+            // they are redirected to a blockchain explorer for that transaction
+            .clickable {
+                urlHandler.openUri("https://mempool.space/testnet/tx/${txId}")
+            }
     ) {
 
         // for confirmed transactions
