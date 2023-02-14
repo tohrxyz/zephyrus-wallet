@@ -29,7 +29,7 @@ For the time being, it is only for <strong> Bitcoin Testnet </strong>.
 ## Download
 You can download this app as an ``.apk`` in the [Releases](https://github.com/tohrxyz/zephyrus-wallet/tags).
 
-Or build from source, I recommed doing this via ``Android Studio``.
+Or build from source, I recommend doing this via ``Android Studio``.
 
 ## How to get testnet coins?
 To obtain some coins for testing, you can use any bitcoin testnet faucet. It's a website, that will send you a small amount of balance for testing purpouses, search for it :)
