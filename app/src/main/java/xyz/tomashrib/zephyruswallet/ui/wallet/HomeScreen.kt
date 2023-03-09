@@ -91,6 +91,17 @@ internal class WalletViewModel() : ViewModel() {
                 _balanceUnconfirmed.value = Wallet.getBalanceUnconfirmed()
                 // transaction history
                 _transactionList.value = Wallet.getTransactions()
+
+            }
+        }
+    }
+
+    fun updatePrice(context: Context){
+        viewModelScope.launch(Dispatchers.IO){
+            val price = getBitcoinPrice(context, balance.toString())
+
+            withContext(Dispatchers.Main){
+                _bitcoinPrice.value = price
             }
         }
     }
@@ -205,7 +216,7 @@ internal fun HomeScreen(
             }
 
             // bitcoin price goes here
-            BitcoinPrice(balance.toString(), context)
+            BitcoinPrice(bitcoinPrice.toString())
 //            BitcoinPrice(btcBalance = "25000", context = context)
             //when network is offline, the "Network unavailable" is displayed
             if (!networkAvailable) {
@@ -302,6 +313,7 @@ internal fun HomeScreen(
                         if (isOnline(context)) {
                             //updates balance with fun from viewModel
                             walletViewModel.updateBalance()
+                            walletViewModel.updatePrice(context)
 
                             //shows a Toast message
                             Toast
@@ -512,8 +524,7 @@ fun TransactionHistoryTile(
 
 @Composable
 fun BitcoinPrice(
-    btcBalance: String,
-    context: Context
+    btcPrice: String
 ){
     Row (
         verticalAlignment = Alignment.CenterVertically,
@@ -524,7 +535,7 @@ fun BitcoinPrice(
             .padding(vertical = 10.dp)
     ) {
         Text(
-            text = "${getBitcoinPrice(context, btcBalance)} USD",
+            text = "$btcPrice USD",
             fontSize = 18.sp,
             fontFamily = sourceSans,
             color = ZephyrusColors.fontColorWhite,
