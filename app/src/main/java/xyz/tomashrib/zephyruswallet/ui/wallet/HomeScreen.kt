@@ -37,8 +37,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import kotlinx.coroutines.*
 import org.bitcoindevkit.TransactionDetails
+import org.json.JSONObject
 import xyz.tomashrib.zephyruswallet.R
 import xyz.tomashrib.zephyruswallet.data.Wallet
 import xyz.tomashrib.zephyruswallet.tools.TAG
@@ -66,6 +72,10 @@ internal class WalletViewModel() : ViewModel() {
     private var _transactionList: MutableLiveData<List<TransactionDetails>> = MutableLiveData()
     val transactionList: LiveData<List<TransactionDetails>>
         get() = _transactionList
+
+    private var _bitcoinPrice: MutableLiveData<String> = MutableLiveData()
+    val bitcoinPrice: LiveData<String>
+        get() = _bitcoinPrice
 
     // updates balance + transaction history
     fun updateBalance() {
@@ -104,6 +114,8 @@ internal fun HomeScreen(
     val balance by walletViewModel.balance.observeAsState()
     // updates incoming unconfirmed balance every time viewmodel updates it
     val balanceUnconfirmed by walletViewModel.balanceUnconfirmed.observeAsState()
+
+    val bitcoinPrice by walletViewModel.bitcoinPrice.observeAsState()
 
     //when network is online and blockchain isnt created yet, the new blockchain is created
     if (networkAvailable && !Wallet.isBlockChainCreated()) {
@@ -192,6 +204,9 @@ internal fun HomeScreen(
                 }
             }
 
+            // bitcoin price goes here
+            BitcoinPrice(balance.toString(), context)
+//            BitcoinPrice(btcBalance = "25000", context = context)
             //when network is offline, the "Network unavailable" is displayed
             if (!networkAvailable) {
                 Row(
@@ -495,6 +510,30 @@ fun TransactionHistoryTile(
     }
 }
 
+@Composable
+fun BitcoinPrice(
+    btcBalance: String,
+    context: Context
+){
+    Row (
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .padding(vertical = 10.dp)
+    ) {
+        Text(
+            text = "${getBitcoinPrice(context, btcBalance)} USD",
+            fontSize = 18.sp,
+            fontFamily = sourceSans,
+            color = ZephyrusColors.fontColorWhite,
+        )
+    }
+
+
+}
+
 // check if its payment to someone or you receive
 fun checkIsPayment(received: String, sent: String): Boolean{
     val receivedSats = received.toInt()
@@ -509,6 +548,32 @@ fun checkIsConfirmed(confirmationTime: String): Boolean{
 
     // returns true if it has confirmation time
     return (confirmationTime != null)
+}
+
+fun getBitcoinPrice(
+    context: Context,
+    btcBalance: String
+): String{
+    val url = "https://api.coindesk.com/v1/bpi/currentprice.json"
+    var priceUSD = "0"
+    val queue = Volley.newRequestQueue(context)
+
+    val stringRequest = StringRequest(
+        Request.Method.GET, url,
+        { response ->
+            var jsonData = JSONObject(response)
+            var price = jsonData.getJSONObject("bpi")
+                        .getJSONObject("USD")
+                        .getString("rate")
+            priceUSD = price
+        },
+        { error ->
+            Log.d(TAG, error.toString()) }
+    )
+    queue.add(stringRequest)
+
+    val balancePrice = (btcBalance.toDouble() / 100000000) * priceUSD.toDouble()
+    return balancePrice.toString()
 }
 
 //@Preview(device = Devices.PIXEL_4, showBackground = true)
