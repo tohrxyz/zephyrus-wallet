@@ -40,15 +40,54 @@ import xyz.tomashrib.zephyruswallet.ui.Screen
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+// viewmodel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.volley.Request
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.util.concurrent.CountDownLatch
+
+internal class SendScreenViewModel() : ViewModel(){
+    private var _feeRates: MutableLiveData<Array<ULong>> = MutableLiveData(arrayOf())
+    val feeRates: LiveData<Array<ULong>>
+        get() = _feeRates
+
+    fun updateFees(context: Context){
+
+        viewModelScope.launch(Dispatchers.IO){
+            val feeRateEstimates = getFees(context)
+
+            withContext(Dispatchers.Main){
+                _feeRates.value = feeRateEstimates
+            }
+        }
+    }
+}
 
 @Composable
-internal fun SendScreen(navController: NavController, context: Context){
+internal fun SendScreen(
+    navController: NavController,
+    context: Context,
+    sendScreenViewModel: SendScreenViewModel = viewModel()
+){
 
     val (showDialog, setShowDialog) =  remember { mutableStateOf(false) }
 
     val recipientAddress: MutableState<String> = remember { mutableStateOf("") }
     val amount: MutableState<String> = remember { mutableStateOf("") }
     val feeRate: MutableState<String> = remember { mutableStateOf("") }
+
+    val feeRatesState = sendScreenViewModel.feeRates.observeAsState(arrayOf(0uL, 0uL, 0uL))
+    val feeRates = feeRatesState.value
 
     val qrCodeScanner =
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("BTC_Address")
@@ -67,6 +106,7 @@ internal fun SendScreen(navController: NavController, context: Context){
         navController.currentBackStackEntry?.savedStateHandle?.remove<String>("BTC_Address")
     }
 
+    sendScreenViewModel.updateFees(context)
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
@@ -192,20 +232,33 @@ internal fun SendScreen(navController: NavController, context: Context){
                     modifier = Modifier
                         .padding(start = 20.dp)
                         .clickable {
-                            try{
+                            try {
                                 // builds a transaction
-                                val (psbt: PartiallySignedTransaction, txDetails: TransactionDetails) = Wallet.createSendAllTransaction(recipientAddress.value, feeRate.value.toFloat())
+                                val (psbt: PartiallySignedTransaction, txDetails: TransactionDetails) = Wallet.createSendAllTransaction(
+                                    recipientAddress.value,
+                                    feeRate.value.toFloat()
+                                )
                                 // puts balance - tx fee into amount field
-                                amount.value = (txDetails.sent - txDetails.fee!!.toULong()).toString()
-                            } catch (e: Exception){
+                                amount.value =
+                                    (txDetails.sent - txDetails.fee!!.toULong()).toString()
+                            } catch (e: Exception) {
                                 // some instructions for user
-                                if(recipientAddress.value.isEmpty()){
-                                    Toast.makeText(context, "Enter valid address!", Toast.LENGTH_SHORT).show()
-                                }
-                                else if(feeRate.value.isEmpty()){
-                                    Toast.makeText(context, "Enter fee rate!", Toast.LENGTH_SHORT).show()
-                                } else{
-                                    Toast.makeText(context, "$e", Toast.LENGTH_SHORT).show()
+                                if (recipientAddress.value.isEmpty()) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "Enter valid address!",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                } else if (feeRate.value.isEmpty()) {
+                                    Toast
+                                        .makeText(context, "Enter fee rate!", Toast.LENGTH_SHORT)
+                                        .show()
+                                } else {
+                                    Toast
+                                        .makeText(context, "$e", Toast.LENGTH_SHORT)
+                                        .show()
                                 }
                             }
                         }
@@ -214,6 +267,9 @@ internal fun SendScreen(navController: NavController, context: Context){
 
             // input field for fee rate entry
             TransactionFeeInput(feeRate)
+
+            // fees
+            TxFees(context = context, fees = feeRates)
 
             //clears all input fields
             Text(
@@ -579,4 +635,88 @@ private fun pasteFromClipboard(context: Context): String{
 
     //default return
     return pasteData
+}
+
+// get fees from mempool.space api using Volley and return array of fees
+private fun getFees(
+    context: Context
+): Array<ULong> {
+
+    val url = "https://mempool.space/api/v1/fees/recommended"
+    var fees = arrayOf(0uL, 0uL, 0uL)
+    val queue = Volley.newRequestQueue(context)
+
+    val latch = CountDownLatch(1)
+
+    val stringRequest = StringRequest(
+        Request.Method.GET, url,
+        { response ->
+            var jsonData = JSONObject(response)
+            var price = jsonData.getJSONObject("bpi")
+                .getJSONObject("USD")
+                .getString("rate")
+
+
+            var  lowFee = jsonData.getLong("economyFee").toULong()
+            var  mediumFee = jsonData.getLong("hourFee").toULong()
+            var highFee = jsonData.getLong("fastestFee").toULong()
+
+            fees = arrayOf(lowFee, mediumFee, highFee)
+
+            latch.countDown()
+        },
+        { error ->
+            Log.d(TAG, error.toString())
+            latch.countDown()
+        }
+    )
+    queue.add(stringRequest)
+
+    try{
+        latch.await()
+    } catch (e: InterruptedException){
+        Log.e(TAG, e.toString())
+    }
+
+    return fees
+
+}
+
+@Composable
+fun TxFees(
+    context: Context,
+    fees: Array<ULong>,
+){
+    val (lowFee, mediumFee, highFee) = fees
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .padding(10.dp)
+    ) {
+        Text(
+            text = "Low $lowFee sat/vB",
+            color = ZephyrusColors.fontColorWhite,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+        )
+        Text(
+            text = "Medium: $mediumFee sat/vB",
+            color = ZephyrusColors.fontColorWhite,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+        )
+        Text(
+            text = "High $highFee sat/vB",
+            color = ZephyrusColors.fontColorWhite,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp)
+        )
+    }
 }
