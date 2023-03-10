@@ -5,12 +5,10 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
-import android.widget.Space
 import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -25,20 +23,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.android.volley.Request
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import kotlinx.coroutines.*
 import org.bitcoindevkit.TransactionDetails
+import org.json.JSONObject
 import xyz.tomashrib.zephyruswallet.R
 import xyz.tomashrib.zephyruswallet.data.Wallet
 import xyz.tomashrib.zephyruswallet.tools.TAG
@@ -48,6 +47,7 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSansSemiBold
 import xyz.tomashrib.zephyruswallet.tools.formatSats
 import xyz.tomashrib.zephyruswallet.tools.timestampToString
+import java.util.concurrent.CountDownLatch
 
 // viewmodel handles the data across screen refreshes
 internal class WalletViewModel() : ViewModel() {
@@ -67,6 +67,11 @@ internal class WalletViewModel() : ViewModel() {
     val transactionList: LiveData<List<TransactionDetails>>
         get() = _transactionList
 
+    // handles rewrite of bitcoin price
+    private var _bitcoinPrice: MutableLiveData<String> = MutableLiveData()
+    val bitcoinPrice: LiveData<String>
+        get() = _bitcoinPrice
+
     // updates balance + transaction history
     fun updateBalance() {
         //does async call to Wallet.sync(), not to block Main UI Thread
@@ -81,6 +86,18 @@ internal class WalletViewModel() : ViewModel() {
                 _balanceUnconfirmed.value = Wallet.getBalanceUnconfirmed()
                 // transaction history
                 _transactionList.value = Wallet.getTransactions()
+
+            }
+        }
+    }
+
+    // updates bitcoin price
+    fun updatePrice(context: Context){
+        viewModelScope.launch(Dispatchers.IO){
+            val price = getBitcoinPrice(context)
+
+            withContext(Dispatchers.Main){
+                _bitcoinPrice.value = price
             }
         }
     }
@@ -104,6 +121,9 @@ internal fun HomeScreen(
     val balance by walletViewModel.balance.observeAsState()
     // updates incoming unconfirmed balance every time viewmodel updates it
     val balanceUnconfirmed by walletViewModel.balanceUnconfirmed.observeAsState()
+
+    // updates bitcoin price every time viewmodel updates it
+    val bitcoinPrice by walletViewModel.bitcoinPrice.observeAsState()
 
     //when network is online and blockchain isnt created yet, the new blockchain is created
     if (networkAvailable && !Wallet.isBlockChainCreated()) {
@@ -191,6 +211,9 @@ internal fun HomeScreen(
                     )
                 }
             }
+
+            // displays bitcoin price
+            BitcoinPrice(bitcoinPrice.toString(), balance.toString())
 
             //when network is offline, the "Network unavailable" is displayed
             if (!networkAvailable) {
@@ -287,6 +310,7 @@ internal fun HomeScreen(
                         if (isOnline(context)) {
                             //updates balance with fun from viewModel
                             walletViewModel.updateBalance()
+                            walletViewModel.updatePrice(context)
 
                             //shows a Toast message
                             Toast
@@ -495,6 +519,31 @@ fun TransactionHistoryTile(
     }
 }
 
+// displays price of bitcoin
+@Composable
+fun BitcoinPrice(
+    btcPrice: String,
+    balance: String
+){
+    Row (
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .padding(vertical = 10.dp)
+    ) {
+        Text(
+            text = "$${priceOfBalance(balance, btcPrice)} (testnet)",
+            fontSize = 18.sp,
+            fontFamily = sourceSans,
+            color = ZephyrusColors.fontColorWhite,
+        )
+    }
+
+
+}
+
 // check if its payment to someone or you receive
 fun checkIsPayment(received: String, sent: String): Boolean{
     val receivedSats = received.toInt()
@@ -509,6 +558,57 @@ fun checkIsConfirmed(confirmationTime: String): Boolean{
 
     // returns true if it has confirmation time
     return (confirmationTime != null)
+}
+
+// gets price of bitcoin from api
+fun getBitcoinPrice(
+    context: Context,
+): String{
+    val url = "https://api.coindesk.com/v1/bpi/currentprice.json"
+    var priceUSD = "0"
+    val queue = Volley.newRequestQueue(context)
+
+    val latch = CountDownLatch(1)
+
+    val stringRequest = StringRequest(
+        Request.Method.GET, url,
+        { response ->
+            var jsonData = JSONObject(response)
+            var price = jsonData.getJSONObject("bpi")
+                        .getJSONObject("USD")
+                        .getString("rate")
+            priceUSD = price
+
+            latch.countDown()
+        },
+        { error ->
+            Log.d(TAG, error.toString())
+            latch.countDown()
+        }
+    )
+    queue.add(stringRequest)
+
+    try{
+        latch.await()
+    } catch (e: InterruptedException){
+        Log.e(TAG, e.toString())
+    }
+
+    return priceUSD
+}
+
+// returns price of balance (in satoshis) in USD
+fun priceOfBalance(
+    balance: String,
+    price: String
+): String {
+
+    val balanceSats = balance.toFloatOrNull() ?: 0f
+    val priceUSD = price.replace(",", "").toFloatOrNull() ?: 0f
+
+    val balanceUSD = (balanceSats / 100000000) * priceUSD
+
+    return "%.2f".format(balanceUSD)
 }
 
 //@Preview(device = Devices.PIXEL_4, showBackground = true)
