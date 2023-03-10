@@ -5,12 +5,10 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
-import android.widget.Space
 import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -25,12 +23,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -38,8 +33,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.android.volley.Request
-import com.android.volley.Response
-import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import kotlinx.coroutines.*
@@ -54,6 +47,7 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSansSemiBold
 import xyz.tomashrib.zephyruswallet.tools.formatSats
 import xyz.tomashrib.zephyruswallet.tools.timestampToString
+import java.util.concurrent.CountDownLatch
 
 // viewmodel handles the data across screen refreshes
 internal class WalletViewModel() : ViewModel() {
@@ -73,6 +67,7 @@ internal class WalletViewModel() : ViewModel() {
     val transactionList: LiveData<List<TransactionDetails>>
         get() = _transactionList
 
+    // handles rewrite of bitcoin price
     private var _bitcoinPrice: MutableLiveData<String> = MutableLiveData()
     val bitcoinPrice: LiveData<String>
         get() = _bitcoinPrice
@@ -96,9 +91,10 @@ internal class WalletViewModel() : ViewModel() {
         }
     }
 
+    // updates bitcoin price
     fun updatePrice(context: Context){
         viewModelScope.launch(Dispatchers.IO){
-            val price = getBitcoinPrice(context, balance.toString())
+            val price = getBitcoinPrice(context)
 
             withContext(Dispatchers.Main){
                 _bitcoinPrice.value = price
@@ -126,6 +122,7 @@ internal fun HomeScreen(
     // updates incoming unconfirmed balance every time viewmodel updates it
     val balanceUnconfirmed by walletViewModel.balanceUnconfirmed.observeAsState()
 
+    // updates bitcoin price every time viewmodel updates it
     val bitcoinPrice by walletViewModel.bitcoinPrice.observeAsState()
 
     //when network is online and blockchain isnt created yet, the new blockchain is created
@@ -215,9 +212,9 @@ internal fun HomeScreen(
                 }
             }
 
-            // bitcoin price goes here
-            BitcoinPrice(bitcoinPrice.toString())
-//            BitcoinPrice(btcBalance = "25000", context = context)
+            // displays bitcoin price
+            BitcoinPrice(bitcoinPrice.toString(), balance.toString())
+
             //when network is offline, the "Network unavailable" is displayed
             if (!networkAvailable) {
                 Row(
@@ -522,9 +519,11 @@ fun TransactionHistoryTile(
     }
 }
 
+// displays price of bitcoin
 @Composable
 fun BitcoinPrice(
-    btcPrice: String
+    btcPrice: String,
+    balance: String
 ){
     Row (
         verticalAlignment = Alignment.CenterVertically,
@@ -535,7 +534,7 @@ fun BitcoinPrice(
             .padding(vertical = 10.dp)
     ) {
         Text(
-            text = "$btcPrice USD",
+            text = "$${priceOfBalance(balance, btcPrice)} (testnet)",
             fontSize = 18.sp,
             fontFamily = sourceSans,
             color = ZephyrusColors.fontColorWhite,
@@ -561,13 +560,15 @@ fun checkIsConfirmed(confirmationTime: String): Boolean{
     return (confirmationTime != null)
 }
 
+// gets price of bitcoin from api
 fun getBitcoinPrice(
     context: Context,
-    btcBalance: String
 ): String{
     val url = "https://api.coindesk.com/v1/bpi/currentprice.json"
     var priceUSD = "0"
     val queue = Volley.newRequestQueue(context)
+
+    val latch = CountDownLatch(1)
 
     val stringRequest = StringRequest(
         Request.Method.GET, url,
@@ -577,14 +578,37 @@ fun getBitcoinPrice(
                         .getJSONObject("USD")
                         .getString("rate")
             priceUSD = price
+
+            latch.countDown()
         },
         { error ->
-            Log.d(TAG, error.toString()) }
+            Log.d(TAG, error.toString())
+            latch.countDown()
+        }
     )
     queue.add(stringRequest)
 
-    val balancePrice = (btcBalance.toDouble() / 100000000) * priceUSD.toDouble()
-    return balancePrice.toString()
+    try{
+        latch.await()
+    } catch (e: InterruptedException){
+        Log.e(TAG, e.toString())
+    }
+
+    return priceUSD
+}
+
+// returns price of balance (in satoshis) in USD
+fun priceOfBalance(
+    balance: String,
+    price: String
+): String {
+
+    val balanceSats = balance.toFloatOrNull() ?: 0f
+    val priceUSD = price.replace(",", "").toFloatOrNull() ?: 0f
+
+    val balanceUSD = (balanceSats / 100000000) * priceUSD
+
+    return "%.2f".format(balanceUSD)
 }
 
 //@Preview(device = Devices.PIXEL_4, showBackground = true)
