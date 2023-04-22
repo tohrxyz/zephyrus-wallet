@@ -9,7 +9,6 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
@@ -35,7 +33,10 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
 // screen where btc address is scanned from a QR code using camera
 @Composable
-internal fun QRScanScreen(navController: NavHostController) {
+internal fun QRScanScreen(
+    navController: NavHostController,
+    sendScreenViewModel: SendScreenViewModel
+) {
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -99,13 +100,10 @@ internal fun QRScanScreen(navController: NavHostController) {
                                     .build()
                                 imageAnalysis.setAnalyzer(
                                     ContextCompat.getMainExecutor(context),
-                                    QRCodeAnalyzer { result -> // analyzes qr code
-                                        result?.let { // when it has read it
-                                            // puts scanned btc address in and goes step back to send screen
-                                            navController.previousBackStackEntry
-                                                ?.savedStateHandle
-                                                ?.set("BTC_Address", it)
-                                            navController.popBackStack() // goes step back to send screen
+                                    QRCodeAnalyzer { result ->
+                                        result?.let {
+                                            sendScreenViewModel.scannedAddress.value = it
+                                            navController.popBackStack()
                                         }
                                     }
                                 )

@@ -3,6 +3,8 @@ package xyz.tomashrib.zephyruswallet.ui.wallet
 import android.annotation.SuppressLint
 import android.content.ClipboardManager
 import android.content.Context
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -16,10 +18,12 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -40,6 +44,7 @@ import xyz.tomashrib.zephyruswallet.ui.Screen
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.core.os.bundleOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -51,6 +56,7 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -73,6 +79,8 @@ internal class SendScreenViewModel() : ViewModel(){
             }
         }
     }
+
+    val scannedAddress = MutableStateFlow<String?>(null)
 }
 
 @Composable
@@ -84,28 +92,24 @@ internal fun SendScreen(
 
     val (showDialog, setShowDialog) =  remember { mutableStateOf(false) }
 
-    val recipientAddress: MutableState<String> = remember { mutableStateOf("") }
+    val recipientAddress: MutableState<String> = rememberSaveable { mutableStateOf("") }
     val amount: MutableState<String> = remember { mutableStateOf("") }
     val feeRate: MutableState<String> = remember { mutableStateOf("") }
 
     val feeRatesState = sendScreenViewModel.feeRates.observeAsState(arrayOf(0uL, 0uL, 0uL))
     val feeRates = feeRatesState.value
 
-    val qrCodeScanner =
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<String>("BTC_Address")
-        ?.observeAsState()
-    qrCodeScanner?.value.let {
-        if (it != null){
-            if(it.substring(0,8) == "bitcoin:"){
-                recipientAddress.value = it.substring(8)
-//                Log.i("qrcode", "${it.substring(0,8)} -> ${it.substring(8)}")
-            } else {
-                recipientAddress.value = it
-            }
-        }
-//            Log.i("qrcode", "naskenovana: ${recipientAddress.value}")
+    val scannedAddressState = sendScreenViewModel.scannedAddress.collectAsState()
 
-        navController.currentBackStackEntry?.savedStateHandle?.remove<String>("BTC_Address")
+    LaunchedEffect(scannedAddressState.value) {
+        scannedAddressState.value?.let { address ->
+            if (address.substring(0, 8) == "bitcoin:") {
+                recipientAddress.value = address.substring(8)
+            } else {
+                recipientAddress.value = address
+            }
+            sendScreenViewModel.scannedAddress.value = null
+        }
     }
 
     sendScreenViewModel.updateFees(context)
@@ -161,9 +165,8 @@ internal fun SendScreen(
 
                         //upon click, it goes to qr code scan screen
                         .clickable {
-
-                            navController.navigate(Screen.QRScanScreen.route) {
-                                launchSingleTop = true
+                            navController.navigate("QRScanScreen") {
+                                popUpTo("SendScreen") { inclusive = true }
                             }
                         }
                 )
