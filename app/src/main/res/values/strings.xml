@@ -14,7 +14,7 @@
     <string name="send_sats">Send Sats</string>
     <string name="send_address">Outgoing Address</string>
     <string name="send_amount">Amount of Sats</string>
-    <string name="send_fee_rate">Fee Rate ( Sats/vB )</string>
+    <string name="send_fee_rate">Fee Rate ( sat/vB )</string>
     <string name="send_broadcast">Send Them Away</string>
     <string name="pending">Pending...</string>
     <string name="confirmed">Confirmed.</string>
