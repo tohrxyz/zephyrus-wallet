@@ -112,8 +112,12 @@ internal fun SendScreen(
             sendScreenViewModel.scannedAddress.value = null
         }
     }
+    val isFeesUpdated = remember { mutableStateOf(false) }
+    if (!isFeesUpdated.value) {
+        isFeesUpdated.value = true
+        sendScreenViewModel.updateFees(context)
+    }
 
-    sendScreenViewModel.updateFees(context)
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
