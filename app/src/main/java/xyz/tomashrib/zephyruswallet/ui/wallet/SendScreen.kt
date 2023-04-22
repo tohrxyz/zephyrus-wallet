@@ -63,6 +63,7 @@ import okhttp3.OkHttpClient
 import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
+import xyz.tomashrib.zephyruswallet.data.ZephyrusViewModel
 
 internal class SendScreenViewModel() : ViewModel(){
     private var _feeRates: MutableLiveData<Array<ULong>> = MutableLiveData(arrayOf())
@@ -604,7 +605,7 @@ private fun broadcastTransaction(recipientAddress: String, amount: ULong, feeRat
         Toast.makeText(context, "Transaction was broadcasted!", Toast.LENGTH_SHORT).show()
 
         //because its successfull, it goes back to HomeScreen
-        navController.navigate(Screen.HomeScreen.route)
+//        navController.navigate(Screen.HomeScreen.route)
     } catch (e: Throwable) {
         Log.i(TAG, "Broadcast error: ${e.message}")
 
