@@ -267,11 +267,15 @@ internal fun SendScreen(
                 )
             }
 
+            var feeRateInserted by remember { mutableStateOf("") }
             // input field for fee rate entry
             TransactionFeeInput(feeRate)
 
             // fees
-            TxFees(context = context, fees = feeRates)
+            TxFees(context = context, fees = feeRates ) { clickableFeeRate ->
+                feeRateInserted = clickableFeeRate
+                feeRate.value = feeRateInserted
+            }
 
             //clears all input fields
             Text(
@@ -668,6 +672,7 @@ private fun getFees(context: Context): Array<ULong> {
 fun TxFees(
     context: Context,
     fees: Array<ULong>,
+    onFeeRateClick: (String) -> Unit
 ){
     val (lowFee, mediumFee, highFee) = fees.takeIf { it.isNotEmpty() } ?: arrayOf(0uL, 0uL, 0uL)
 
@@ -686,22 +691,25 @@ fun TxFees(
 ////                .padding(start = 10.dp)
 //        )
         Text(
-            text = "Slow $lowFee sat/vB",
+            text = "Slow: $lowFee sat/vB",
             color = ZephyrusColors.lightPurplePrimary,
             modifier = Modifier
                 .padding(end = 10.dp)
+                .clickable { onFeeRateClick(lowFee.toString()) }
         )
         Text(
             text = "Medium: $mediumFee sat/vB",
             color = ZephyrusColors.lightPurplePrimary,
             modifier = Modifier
                 .padding(horizontal = 10.dp)
+                .clickable { onFeeRateClick(mediumFee.toString()) }
         )
         Text(
-            text = "Fast $highFee sat/vB",
+            text = "Fast: $highFee sat/vB",
             color = ZephyrusColors.lightPurplePrimary,
             modifier = Modifier
                 .padding(start = 10.dp)
+                .clickable { onFeeRateClick(highFee.toString()) }
         )
     }
 }
