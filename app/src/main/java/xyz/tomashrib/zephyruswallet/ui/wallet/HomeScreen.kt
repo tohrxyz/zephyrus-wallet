@@ -421,6 +421,7 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
                     sent = item.sent.toString(),
                     txId = item.txid,
                     timestamp = "pending",
+                    fees = item.fee.toString()
                 )
                 // space between
                 Spacer(Modifier.padding(vertical = 10.dp))
@@ -431,7 +432,8 @@ fun TransactionHistoryList(transactions: List<TransactionDetails>){
                     received = item.received.toString(),
                     sent = item.sent.toString(),
                     txId = item.txid,
-                    timestamp = item.confirmationTime!!.timestamp.timestampToString()
+                    timestamp = item.confirmationTime!!.timestamp.timestampToString(),
+                    fees = item.fee.toString()
                 )
                 // space between
                 Spacer(Modifier.padding(vertical = 10.dp))
@@ -448,7 +450,8 @@ fun TransactionHistoryTile(
     received: String,
     sent: String,
     txId: String,
-    timestamp: String
+    timestamp: String,
+    fees: String
 ){
     val urlHandler = LocalUriHandler.current
     Row(
@@ -482,8 +485,9 @@ fun TransactionHistoryTile(
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ){
                 // displays how much was sent/received
+                val netSpent = sent.toULong() - received.toULong() - fees.toULong()
                 Text(
-                    text = if(isPayment){ "- ${formatSats(sent)} Sats"} else { "+ ${formatSats(received)} Sats"},
+                    text = if(isPayment){ "- ${formatSats(netSpent.toString())} Sats"} else { "+ ${formatSats(received)} Sats"},
                     fontSize = 18.sp,
                     fontFamily = sourceSans,
                     color = if(isPayment){ZephyrusColors.lightPurplePrimary} else {ZephyrusColors.lightBlue},
@@ -509,8 +513,9 @@ fun TransactionHistoryTile(
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ){
                 // displays how much was sent/received
+                val netSpent = sent.toULong() - received.toULong() - fees.toULong()
                 Text(
-                    text = if(isPayment){ "- ${formatSats(sent)} Sats"} else { "+ ${formatSats(received)} Sats"},
+                    text = if(isPayment){ "- ${formatSats(netSpent.toString())} Sats"} else { "+ ${formatSats(received)} Sats"},
                     fontSize = 18.sp,
                     fontFamily = sourceSans,
                     color = ZephyrusColors.lightGrey,
