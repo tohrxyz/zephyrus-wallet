@@ -190,7 +190,7 @@ fun NavigateToSendScreen(navController: NavController, qrScanned: MutableState<B
     LaunchedEffect(qrScanned.value) {
         if (qrScanned.value) {
             navController.navigate(Screen.SendScreen.route) {
-                popUpTo(Screen.SendScreen.route) { inclusive = false }
+                popUpTo(Screen.SendScreen.route) { inclusive = true; saveState = false }
             }
             qrScanned.value = false
         }
