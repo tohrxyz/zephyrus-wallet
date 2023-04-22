@@ -485,7 +485,7 @@ fun TransactionHistoryTile(
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ){
                 // displays how much was sent/received
-                val netSpent = sent.toULong() - received.toULong() - fees.toULong()
+                val netSpent = sent.toULong() - received.toULong() + fees.toULong()
                 Text(
                     text = if(isPayment){ "- ${formatSats(netSpent.toString())} Sats"} else { "+ ${formatSats(received)} Sats"},
                     fontSize = 18.sp,
@@ -513,7 +513,7 @@ fun TransactionHistoryTile(
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ){
                 // displays how much was sent/received
-                val netSpent = sent.toULong() - received.toULong() - fees.toULong()
+                val netSpent = sent.toULong() - received.toULong() + fees.toULong()
                 Text(
                     text = if(isPayment){ "- ${formatSats(netSpent.toString())} Sats"} else { "+ ${formatSats(received)} Sats"},
                     fontSize = 18.sp,
