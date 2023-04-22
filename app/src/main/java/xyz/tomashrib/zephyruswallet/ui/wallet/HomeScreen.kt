@@ -49,6 +49,7 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSansSemiBold
 import xyz.tomashrib.zephyruswallet.tools.formatSats
 import xyz.tomashrib.zephyruswallet.tools.timestampToString
 import java.util.concurrent.CountDownLatch
+import xyz.tomashrib.zephyruswallet.data.ZephyrusViewModel
 
 // viewmodel handles the data across screen refreshes
 internal class WalletViewModel() : ViewModel() {
@@ -109,7 +110,8 @@ internal class WalletViewModel() : ViewModel() {
 internal fun HomeScreen(
     navController: NavController,
     context: Context,
-    walletViewModel: WalletViewModel = viewModel()
+    walletViewModel: WalletViewModel = viewModel(),
+    zephyrusViewModel: ZephyrusViewModel = viewModel()
 ) {
     //complete list of all transaction associated with current wallet
 //    val allTransactions: List<TransactionDetails> = Wallet.getTransactions()
@@ -131,14 +133,14 @@ internal fun HomeScreen(
         Log.i(TAG, "Creating new blockchain")
         Wallet.createBlockchain()
     }
-    val hasSynced = rememberSaveable { mutableStateOf(false) }
 
-    if (!hasSynced.value) {
+    if(!zephyrusViewModel.hasSynced.value) {
         walletViewModel.updateBalance()
         walletViewModel.updatePrice(context)
         Toast.makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT).show()
-        hasSynced.value = true
+        zephyrusViewModel.hasSynced.value = true
     }
+
 //    walletViewModel.updateBalance()
 //    Toast.makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT).show()
 

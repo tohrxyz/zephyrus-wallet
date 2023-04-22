@@ -63,6 +63,7 @@ import okhttp3.OkHttpClient
 import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
+import xyz.tomashrib.zephyruswallet.data.ZephyrusViewModel
 
 internal class SendScreenViewModel() : ViewModel(){
     private var _feeRates: MutableLiveData<Array<ULong>> = MutableLiveData(arrayOf())
