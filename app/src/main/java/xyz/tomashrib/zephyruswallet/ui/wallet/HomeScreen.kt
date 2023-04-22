@@ -134,12 +134,6 @@ internal fun HomeScreen(
         Wallet.createBlockchain()
     }
 
-    if(!zephyrusViewModel.hasSynced.value) {
-        walletViewModel.updateBalance()
-        walletViewModel.updatePrice(context)
-        Toast.makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT).show()
-        zephyrusViewModel.hasSynced.value = true
-    }
 
 //    walletViewModel.updateBalance()
 //    Toast.makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT).show()
@@ -362,6 +356,12 @@ internal fun HomeScreen(
     } //constraint end
 
 
+    if(!zephyrusViewModel.hasSynced.value) {
+        walletViewModel.updateBalance()
+        walletViewModel.updatePrice(context)
+        Toast.makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT).show()
+        zephyrusViewModel.hasSynced.value = true
+    }
 }
 
 //function that checks if the internet connectivity is available

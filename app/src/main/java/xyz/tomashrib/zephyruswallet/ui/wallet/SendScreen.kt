@@ -605,7 +605,7 @@ private fun broadcastTransaction(recipientAddress: String, amount: ULong, feeRat
         Toast.makeText(context, "Transaction was broadcasted!", Toast.LENGTH_SHORT).show()
 
         //because its successfull, it goes back to HomeScreen
-        navController.navigate(Screen.HomeScreen.route)
+//        navController.navigate(Screen.HomeScreen.route)
     } catch (e: Throwable) {
         Log.i(TAG, "Broadcast error: ${e.message}")
 
