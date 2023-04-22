@@ -448,7 +448,7 @@ private fun TransactionFeeInput(feeRate: MutableState<String>){
 
         OutlinedTextField(
             modifier = Modifier
-                .padding(vertical = 10.dp)
+                .padding(top = 10.dp, bottom = 5.dp)
                 .fillMaxWidth(0.9f),
             value = feeRate.value,
             onValueChange = {
@@ -672,33 +672,36 @@ fun TxFees(
     val (lowFee, mediumFee, highFee) = fees.takeIf { it.isNotEmpty() } ?: arrayOf(0uL, 0uL, 0uL)
 
     Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .fillMaxWidth()
+//            .fillMaxWidth()
             .height(50.dp)
-            .padding(10.dp)
+            .padding(bottom = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
+//        Text(
+//            text = "Priority: ",
+//            color = ZephyrusColors.fontColorWhite,
+//            modifier = Modifier
+////                .padding(start = 10.dp)
+//        )
         Text(
-            text = "Low $lowFee sat/vB",
-            color = ZephyrusColors.fontColorWhite,
+            text = "Slow $lowFee sat/vB",
+            color = ZephyrusColors.lightPurplePrimary,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
+                .padding(end = 10.dp)
         )
         Text(
             text = "Medium: $mediumFee sat/vB",
-            color = ZephyrusColors.fontColorWhite,
+            color = ZephyrusColors.lightPurplePrimary,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
+                .padding(horizontal = 10.dp)
         )
         Text(
-            text = "High $highFee sat/vB",
-            color = ZephyrusColors.fontColorWhite,
+            text = "Fast $highFee sat/vB",
+            color = ZephyrusColors.lightPurplePrimary,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
+                .padding(start = 10.dp)
         )
     }
 }
