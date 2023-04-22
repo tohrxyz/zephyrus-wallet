@@ -14,6 +14,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -130,7 +131,14 @@ internal fun HomeScreen(
         Log.i(TAG, "Creating new blockchain")
         Wallet.createBlockchain()
     }
+    val hasSynced = rememberSaveable { mutableStateOf(false) }
 
+    if (!hasSynced.value) {
+        walletViewModel.updateBalance()
+        walletViewModel.updatePrice(context)
+        Toast.makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT).show()
+        hasSynced.value = true
+    }
 //    walletViewModel.updateBalance()
 //    Toast.makeText(context, "Wallet is syncing...", Toast.LENGTH_SHORT).show()
 
