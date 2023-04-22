@@ -103,6 +103,7 @@ internal fun SendScreen(
 
     LaunchedEffect(scannedAddressState.value) {
         scannedAddressState.value?.let { address ->
+            Log.d("SendScreen", "Received scanned address: $address")
             if (address.substring(0, 8) == "bitcoin:") {
                 recipientAddress.value = address.substring(8)
             } else {

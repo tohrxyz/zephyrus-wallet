@@ -2,6 +2,7 @@ package xyz.tomashrib.zephyruswallet.ui.wallet
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -17,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -26,8 +28,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import xyz.tomashrib.zephyruswallet.tools.QRCodeAnalyzer
+import xyz.tomashrib.zephyruswallet.ui.Screen
 import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 
@@ -35,13 +40,25 @@ import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 @Composable
 internal fun QRScanScreen(
     navController: NavHostController,
-    sendScreenViewModel: SendScreenViewModel
+    sendScreenViewModel: SendScreenViewModel = viewModel()
 ) {
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    val qrScanned = rememberSaveable { mutableStateOf(false) }
+
+    val cameraProviderState = remember { mutableStateOf<ProcessCameraProvider?>(null) }
+
+    cameraProviderFuture.addListener(
+        {
+            val cameraProvider = cameraProviderFuture.get()
+            cameraProviderState.value = cameraProvider
+        },
+        ContextCompat.getMainExecutor(context)
+    )
+
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -70,6 +87,7 @@ internal fun QRScanScreen(
         backgroundColor = ZephyrusColors.bgColorBlack,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
+        NavigateToSendScreen(navController, qrScanned)
         ConstraintLayout(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -102,8 +120,14 @@ internal fun QRScanScreen(
                                     ContextCompat.getMainExecutor(context),
                                     QRCodeAnalyzer { result ->
                                         result?.let {
-                                            sendScreenViewModel.scannedAddress.value = it
-                                            navController.popBackStack()
+                                            if (!qrScanned.value) {
+                                                Log.d("QRScanScreen", "Scanned QR code successfully: $it")
+                                                sendScreenViewModel.scannedAddress.value = it
+                                                qrScanned.value = true
+                                                cameraProviderState.value?.unbindAll()
+                                            }
+                                        } ?: run {
+                                            Log.d("QRScanScreen", "Failed to scan QR code")
                                         }
                                     }
                                 )
@@ -160,3 +184,16 @@ internal fun QRScanScreen(
         }
     }
 }
+
+@Composable
+fun NavigateToSendScreen(navController: NavController, qrScanned: MutableState<Boolean>) {
+    LaunchedEffect(qrScanned.value) {
+        if (qrScanned.value) {
+            navController.navigate(Screen.SendScreen.route) {
+                popUpTo(Screen.SendScreen.route) { inclusive = false }
+            }
+            qrScanned.value = false
+        }
+    }
+}
+
