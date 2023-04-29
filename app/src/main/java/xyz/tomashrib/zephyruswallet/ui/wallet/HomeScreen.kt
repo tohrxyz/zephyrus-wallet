@@ -277,7 +277,7 @@ internal fun HomeScreen(
             Button(
                 onClick = {
                     navController.navigate(Screen.ReceiveScreen.route)
-                    Toast.makeText(context, "Generating new address for you...", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(context, "Generating new address for you...", Toast.LENGTH_SHORT).show()
                 },
                 colors = ButtonDefaults.buttonColors(ZephyrusColors.lightPurplePrimary),
                 shape = RoundedCornerShape(10.dp),

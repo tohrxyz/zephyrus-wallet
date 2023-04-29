@@ -45,8 +45,10 @@ import xyz.tomashrib.zephyruswallet.ui.theme.ZephyrusColors
 import xyz.tomashrib.zephyruswallet.ui.theme.sourceSans
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import xyz.tomashrib.zephyruswallet.tools.TAG
 
 
@@ -76,10 +78,12 @@ internal fun ReceiveScreen(
     context: Context,
     addressViewModel: AddressViewModel = viewModel()
 ){
-    val address by addressViewModel.address.observeAsState("Generate new address")
+    val address by addressViewModel.address.observeAsState("No address yet")
 
-    //this generates last unused address upon ReceiveScreen composable launch
-    addressViewModel.updateAddressLastUnused()
+    LaunchedEffect(Unit) {
+        Log.i(TAG, "ReceiveScreen launched")
+        addressViewModel.updateAddressLastUnused()
+    }
 
     ConstraintLayout(
         modifier = Modifier
@@ -117,27 +121,31 @@ internal fun ReceiveScreen(
                     height = Dimension.fillToConstraints
                 }
         ){
-            val qrcode: ImageBitmap? = addressToQR(address) // converts address string to qr code
-            Log.i("ReceiveScreen", "New receive address is $address")
-            if (address != "No address yet" && qrcode != null) {
-                Image(
-                    bitmap = qrcode,
-                    contentDescription = "Bitcoindevkit website QR code",
-                    Modifier.size(250.dp)
-                )
-                Spacer(modifier = Modifier.padding(vertical = 20.dp))
-                SelectionContainer(
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .padding(start = 5.dp)
-                ) {
-                    // displays bitcoin address under qr code
-                    Text(
-                        text = readableAddress(address),
-                        fontFamily = sourceSans,
-                        color = ZephyrusColors.fontColorWhite,
-                        fontSize = 22.sp,
+            if(address == "No address yet"){
+                CircularProgressIndicator(context)
+            } else {
+                val qrcode: ImageBitmap? = addressToQR(address) // converts address string to qr code
+                Log.i("ReceiveScreen", "New receive address is $address")
+                if (address != "No address yet" && qrcode != null) {
+                    Image(
+                        bitmap = qrcode,
+                        contentDescription = "Bitcoindevkit website QR code",
+                        Modifier.size(250.dp)
                     )
+                    Spacer(modifier = Modifier.padding(vertical = 20.dp))
+                    SelectionContainer(
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .padding(start = 5.dp)
+                    ) {
+                        // displays bitcoin address under qr code
+                        Text(
+                            text = readableAddress(address),
+                            fontFamily = sourceSans,
+                            color = ZephyrusColors.fontColorWhite,
+                            fontSize = 22.sp,
+                        )
+                    }
                 }
             }
 
