@@ -24,8 +24,8 @@ For the time being, it is only for <strong> Bitcoin Testnet </strong>.
 - [x] Send satoshi
 - [x] Display recovery phrase
 - [x] Scan QR code
-- [ ] Display exchange rate
-- [ ] Display recommended fees
+- [x] Display exchange rate
+- [x] Display recommended fees
 
 ## 📲 How to download this app?
 You can download this app as an ``.apk`` in the [Releases](https://github.com/tohrxyz/zephyrus-wallet/tags).
